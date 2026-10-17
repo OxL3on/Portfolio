@@ -9,7 +9,8 @@ import {
   revokeAllSessions,
   checkRateLimit,
   clearRateLimit,
-  getClientIp
+  getClientIp,
+  validateSameOrigin
 } from '@/lib/auth';
 
 // Check if current session is authenticated
@@ -27,6 +28,10 @@ export async function GET(req) {
 // Authenticate with master passcode
 export async function POST(req) {
   try {
+    if (!validateSameOrigin(req)) {
+      return NextResponse.json({ error: 'Cross-origin requests are forbidden' }, { status: 403 });
+    }
+
     const ip = getClientIp(req);
     const rateLimit = checkRateLimit(`auth:${ip}`, 5, 15 * 60 * 1000);
     if (!rateLimit.allowed) {
@@ -69,8 +74,9 @@ export async function POST(req) {
           success: true,
           message: 'Authenticated via Google OAuth',
           adminUser: {
-            ...adminUser,
-            token: session.signedToken
+            name: adminUser.name,
+            role: adminUser.role,
+            email: adminUser.email
           }
         });
 
@@ -94,7 +100,10 @@ export async function POST(req) {
     }
 
     const data = getLocalData();
-    const activePasscode = data.adminSettings?.passcode || 'luffy111000';
+    const activePasscode = data.adminSettings?.passcode || '';
+    if (!activePasscode) {
+      return NextResponse.json({ error: 'Admin passcode is not configured on server' }, { status: 500 });
+    }
 
     const { valid, needsUpgrade } = verifyPassword(passcode.trim(), activePasscode);
 
@@ -126,8 +135,8 @@ export async function POST(req) {
       success: true,
       message: 'Authenticated successfully',
       adminUser: {
-        ...adminUser,
-        token: session.signedToken
+        name: adminUser.name,
+        role: adminUser.role
       }
     });
 
@@ -151,6 +160,10 @@ export async function POST(req) {
 // Update master passcode
 export async function PUT(req) {
   try {
+    if (!validateSameOrigin(req)) {
+      return NextResponse.json({ error: 'Cross-origin requests are forbidden' }, { status: 403 });
+    }
+
     const ip = getClientIp(req);
     const rateLimit = checkRateLimit(`auth_put:${ip}`, 5, 15 * 60 * 1000);
     if (!rateLimit.allowed) {
@@ -170,7 +183,10 @@ export async function PUT(req) {
     }
 
     const data = getLocalData();
-    const activePasscode = data.adminSettings?.passcode || 'luffy111000';
+    const activePasscode = data.adminSettings?.passcode || '';
+    if (!activePasscode) {
+      return NextResponse.json({ error: 'Admin passcode is not configured on server' }, { status: 500 });
+    }
 
     const { valid } = verifyPassword(currentPasscode.trim(), activePasscode);
     if (!valid) {
@@ -195,8 +211,7 @@ export async function PUT(req) {
 
     const response = NextResponse.json({
       success: true,
-      message: 'Admin passcode updated successfully',
-      token: freshSession.signedToken
+      message: 'Admin passcode updated successfully'
     });
 
     response.cookies.set({
@@ -218,6 +233,9 @@ export async function PUT(req) {
 // Logout and revoke session
 export async function DELETE(req) {
   try {
+    if (!validateSameOrigin(req)) {
+      return NextResponse.json({ error: 'Cross-origin requests are forbidden' }, { status: 403 });
+    }
     let token = req.cookies.get('admin_session')?.value;
     if (!token && req.headers) {
       const authHeader = req.headers.get('authorization') || '';

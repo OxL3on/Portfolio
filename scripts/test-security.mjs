@@ -1,4 +1,18 @@
-// Native global fetch and FormData available in Node 20+
+import fs from 'fs';
+import path from 'path';
+
+function getTestPasscode() {
+  if (process.env.ADMIN_MASTER_PASSCODE) return process.env.ADMIN_MASTER_PASSCODE;
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf-8');
+      const match = content.match(/ADMIN_MASTER_PASSCODE=([^\r\n]+)/);
+      if (match) return match[1].trim();
+    }
+  } catch (e) {}
+  return 'default-fallback-unconfigured';
+}
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
 
@@ -105,9 +119,10 @@ async function runSecurityTestSuite() {
 
   // Test 3.1: Email-only authentication bypass payload
   try {
+    const bypassIp = `198.51.${Math.floor(Math.random() * 200) + 10}.1`;
     const res = await fetch(`${BASE_URL}/api/admin/auth`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '198.51.100.99' },
+      headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': bypassIp },
       body: JSON.stringify({ email: 'leonislamofficial123@gmail.com' })
     });
     assert(res.status === 400 || res.status === 401, `Email-only login bypass rejected`, `Status: ${res.status}`);
@@ -123,7 +138,7 @@ async function runSecurityTestSuite() {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${forgedToken}`,
-        'X-Forwarded-For': '198.51.100.99'
+        'X-Forwarded-For': `198.51.${Math.floor(Math.random() * 200) + 10}.2`
       },
       body: JSON.stringify({ name: 'Tampered' })
     });
@@ -134,9 +149,10 @@ async function runSecurityTestSuite() {
 
   // Test 3.3: Empty or invalid passcode
   try {
+    const invalidAuthIp = `198.51.${Math.floor(Math.random() * 200) + 10}.3`;
     const res = await fetch(`${BASE_URL}/api/admin/auth`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '198.51.100.99' },
+      headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': invalidAuthIp },
       body: JSON.stringify({ passcode: 'WrongPassword999!' })
     });
     assert(res.status === 401, `Incorrect passcode rejected with 401`, `Status: ${res.status}`);
@@ -145,50 +161,32 @@ async function runSecurityTestSuite() {
   }
 
   // -----------------------------------------------------------------
-  // 4. AUTHENTICATED ADMIN FLOWS & SESSION SECURITY
+  // 4. AUTHENTICATED ADMIN FLOWS & SERVER-VALIDATED SESSIONS
   // -----------------------------------------------------------------
-  console.log(`\n--- 4. Testing Legitimate Admin Authentication & Session Issuance ---`);
+  console.log(`\n--- 4. Testing Legitimate Admin Authentication & Cookie-Only Sessions ---`);
   let adminCookie = '';
-  let adminToken = '';
 
   try {
-    // Current active passcode in portfolio_db.json
+    const activePasscode = getTestPasscode();
+    const adminLoginIp = `198.51.${Math.floor(Math.random() * 200) + 10}.4`;
     const res = await fetch(`${BASE_URL}/api/admin/auth`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '10.0.0.1' },
-      body: JSON.stringify({ passcode: 'MyNameIsLeon123##' })
+      headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': adminLoginIp },
+      body: JSON.stringify({ passcode: activePasscode })
     });
     const data = await res.json();
     const setCookie = res.headers.get('set-cookie') || '';
 
-    assert(res.status === 200 && data.success === true, `Admin login with master passcode succeeds`, `Status: ${res.status}`);
+    assert(res.status === 200 && data.success === true, `Admin login with rotated master passcode succeeds`, `Status: ${res.status}`);
     assert(setCookie.includes('admin_session') && setCookie.includes('HttpOnly'), `Response sets HttpOnly admin_session cookie`, setCookie);
-    assert(Boolean(data.adminUser?.token), `Response contains signed session token`);
+    assert(!data.adminUser?.token, `Response does NOT leak bearer token to client code`);
 
-    adminToken = data.adminUser?.token || '';
     adminCookie = setCookie.split(';')[0];
   } catch (e) {
     assert(false, `Admin login with master passcode succeeds`, e.message);
   }
 
-  // Test 4.2: Authorized write using session token
-  if (adminToken) {
-    try {
-      const res = await fetch(`${BASE_URL}/api/maininfo`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
-        },
-        body: JSON.stringify({ siteTitle: 'LEON' })
-      });
-      assert(res.status === 200, `Authorized write using Bearer token succeeds`, `Status: ${res.status}`);
-    } catch (e) {
-      assert(false, `Authorized write using Bearer token succeeds`, e.message);
-    }
-  }
-
-  // Test 4.3: Authorized write using HttpOnly cookie
+  // Test 4.2: Authorized write using HttpOnly cookie
   if (adminCookie) {
     try {
       const res = await fetch(`${BASE_URL}/api/maininfo`, {
@@ -199,9 +197,9 @@ async function runSecurityTestSuite() {
         },
         body: JSON.stringify({ siteTitle: 'LEON' })
       });
-      assert(res.status === 200, `Authorized write using HttpOnly cookie succeeds`, `Status: ${res.status}`);
+      assert(res.status === 200, `Authorized write using HttpOnly session cookie succeeds`, `Status: ${res.status}`);
     } catch (e) {
-      assert(false, `Authorized write using HttpOnly cookie succeeds`, e.message);
+      assert(false, `Authorized write using HttpOnly session cookie succeeds`, e.message);
     }
   }
 
@@ -219,7 +217,7 @@ async function runSecurityTestSuite() {
     const res = await fetch(`${BASE_URL}/api/upload`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${adminToken}`
+        'Cookie': adminCookie
       },
       body: form
     });
@@ -237,7 +235,7 @@ async function runSecurityTestSuite() {
     const res = await fetch(`${BASE_URL}/api/upload`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${adminToken}`
+        'Cookie': adminCookie
       },
       body: form
     });
@@ -255,7 +253,7 @@ async function runSecurityTestSuite() {
     const res = await fetch(`${BASE_URL}/api/upload`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${adminToken}`
+        'Cookie': adminCookie
       },
       body: form
     });
@@ -284,12 +282,12 @@ async function runSecurityTestSuite() {
     const res = await fetch(`${BASE_URL}/api/upload`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${adminToken}`
+        'Cookie': adminCookie
       },
       body: form
     });
     const data = await res.json();
-    assert(res.status === 200 && data.success === true, `Valid PNG image upload succeeds`, `Status: ${res.status}`);
+    assert(res.status === 200 && data.success === true, `Valid PNG image upload succeeds via HttpOnly cookie`, `Status: ${res.status}`);
     assert(data.url && !data.url.includes('..'), `Upload filename sanitized without path traversal`, `URL: ${data.url}`);
   } catch (e) {
     assert(false, `Valid PNG image upload succeeds`, e.message);
@@ -313,41 +311,65 @@ async function runSecurityTestSuite() {
   }
 
   // -----------------------------------------------------------------
-  // 7. SESSION REVOCATION & PASSCODE ROTATION TEST
+  // 7. SESSION REVOCATION, PERSISTENCE & CSRF TESTS
   // -----------------------------------------------------------------
-  console.log(`\n--- 7. Testing Session Revocation & Passcode Rotation ---`);
+  console.log(`\n--- 7. Testing Session Revocation, Persistence & CSRF Defense ---`);
   try {
-    // 1. Verify old token works before revocation
+    // 1. Verify HttpOnly cookie works before revocation
     const checkRes = await fetch(`${BASE_URL}/api/maininfo`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${adminToken}`
+        'Cookie': adminCookie
       },
       body: JSON.stringify({ siteTitle: 'LEON' })
     });
-    assert(checkRes.status === 200, `Active token verified functional before revocation`);
+    assert(checkRes.status === 200, `Active HttpOnly cookie verified functional before revocation`);
 
-    // 2. Perform logout via DELETE /api/admin/auth
+    // 2. Cross-Site Request Forgery (CSRF) origin attack simulation
+    const csrfRes = await fetch(`${BASE_URL}/api/admin/auth`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Origin': 'https://malicious-attacker.com',
+        'Host': 'localhost:3000'
+      },
+      body: JSON.stringify({ passcode: getTestPasscode() })
+    });
+    assert(csrfRes.status === 403, `Cross-Origin state-changing request blocked with 403 Forbidden`, `Status: ${csrfRes.status}`);
+
+    // 2b. Cross-Site Request Forgery on authenticated data modification endpoint
+    const csrfDataRes = await fetch(`${BASE_URL}/api/projects`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': adminCookie,
+        'Origin': 'https://malicious-attacker.com',
+        'Host': 'localhost:3000'
+      },
+      body: JSON.stringify({ title: 'Hacked Project' })
+    });
+    assert(csrfDataRes.status === 401 || csrfDataRes.status === 403, `Cross-Origin data mutation rejected with 401/403`, `Status: ${csrfDataRes.status}`);
+
+    // 3. Perform logout via DELETE /api/admin/auth
     const logoutRes = await fetch(`${BASE_URL}/api/admin/auth`, {
       method: 'DELETE',
       headers: {
-        'Cookie': adminCookie,
-        'Authorization': `Bearer ${adminToken}`
+        'Cookie': adminCookie
       }
     });
-    assert(logoutRes.status === 200, `Admin logout succeeds`);
+    assert(logoutRes.status === 200, `Admin logout succeeds and clears session`);
 
-    // 3. Verify revoked token is now rejected
+    // 4. Verify revoked session cookie is rejected
     const revokedCheckRes = await fetch(`${BASE_URL}/api/maininfo`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${adminToken}`
+        'Cookie': adminCookie
       },
       body: JSON.stringify({ siteTitle: 'LEON' })
     });
-    assert(revokedCheckRes.status === 401, `Revoked session token is rejected with 401`);
+    assert(revokedCheckRes.status === 401, `Revoked session cookie is immediately rejected with 401`);
   } catch (e) {
     assert(false, `Session Revocation Test failed`, e.message);
   }

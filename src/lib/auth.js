@@ -77,9 +77,43 @@ export function verifyPassword(inputPassword, storedHash) {
 }
 
 // ==========================================
-// 3. CRYPTOGRAPHIC SESSION MANAGEMENT
+// 3. CRYPTOGRAPHIC SESSION MANAGEMENT & PERSISTENCE
 // ==========================================
-const activeSessions = globalThis.__adminActiveSessions || (globalThis.__adminActiveSessions = new Map());
+const SESSIONS_FILE = path.join(process.cwd(), 'src/data/.sessions.json');
+
+function loadPersistentSessions() {
+  try {
+    if (fs.existsSync(SESSIONS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(SESSIONS_FILE, 'utf-8'));
+      const map = new Map();
+      const now = Date.now();
+      for (const [id, item] of Object.entries(data)) {
+        if (item && item.expiresAt && item.expiresAt > now) {
+          map.set(id, item);
+        }
+      }
+      return map;
+    }
+  } catch (e) {}
+  return new Map();
+}
+
+function savePersistentSessions(map) {
+  try {
+    const obj = {};
+    const now = Date.now();
+    for (const [id, item] of map.entries()) {
+      if (item && item.expiresAt && item.expiresAt > now) {
+        obj[id] = item;
+      }
+    }
+    const dir = path.dirname(SESSIONS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(SESSIONS_FILE, JSON.stringify(obj, null, 2), { mode: 0o600 });
+  } catch (e) {}
+}
+
+const activeSessions = globalThis.__adminActiveSessions || (globalThis.__adminActiveSessions = loadPersistentSessions());
 
 export function createAdminSession(adminUser = { name: 'MD Leon Islam', role: 'Administrator' }) {
   const tokenId = crypto.randomBytes(32).toString('hex');
@@ -89,11 +123,14 @@ export function createAdminSession(adminUser = { name: 'MD Leon Islam', role: 'A
   const signature = crypto.createHmac('sha256', SERVER_SECRET).update(payload).digest('hex');
   const signedToken = `${payload}.${signature}`;
 
-  activeSessions.set(tokenId, {
+  const sessionData = {
     createdAt: timestamp,
     expiresAt,
     adminUser
-  });
+  };
+
+  activeSessions.set(tokenId, sessionData);
+  savePersistentSessions(activeSessions);
 
   return {
     signedToken,
@@ -104,6 +141,12 @@ export function createAdminSession(adminUser = { name: 'MD Leon Islam', role: 'A
 
 export function validateAdminSession(req) {
   try {
+    if (req && req.method && !['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+      if (!validateSameOrigin(req)) {
+        return { isValid: false, authenticated: false, error: 'Forbidden: Cross-origin state modification disallowed' };
+      }
+    }
+
     let token = '';
 
     // 1. Try HttpOnly Cookie
@@ -111,7 +154,7 @@ export function validateAdminSession(req) {
       token = req.cookies.get('admin_session')?.value || '';
     }
     
-    // 2. Try Authorization Bearer Header
+    // 2. Try Authorization Bearer Header (for secure scripts/automation only)
     if (!token && req.headers) {
       const authHeader = req.headers.get('authorization') || '';
       if (authHeader.startsWith('Bearer ')) {
@@ -142,6 +185,7 @@ export function validateAdminSession(req) {
 
     if (isNaN(expiresAt) || Date.now() > expiresAt) {
       activeSessions.delete(tokenId);
+      savePersistentSessions(activeSessions);
       return { isValid: false, authenticated: false, error: 'Unauthorized: Session has expired' };
     }
 
@@ -154,6 +198,14 @@ export function validateAdminSession(req) {
 
     if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) {
       return { isValid: false, authenticated: false, error: 'Unauthorized: Invalid session signature' };
+    }
+
+    // If server restarted and memory is clean, try reloading persistent sessions
+    if (!activeSessions.has(tokenId)) {
+      const reloaded = loadPersistentSessions();
+      for (const [k, v] of reloaded.entries()) {
+        activeSessions.set(k, v);
+      }
     }
 
     // Verify session has not been revoked or invalidated
@@ -176,10 +228,28 @@ export function revokeSession(token) {
   if (!token) return;
   const tokenId = token.split('.')[0];
   activeSessions.delete(tokenId);
+  savePersistentSessions(activeSessions);
 }
 
 export function revokeAllSessions() {
   activeSessions.clear();
+  savePersistentSessions(activeSessions);
+}
+
+// CSRF Origin validation for state-changing HTTP methods
+export function validateSameOrigin(req) {
+  if (!req || !req.headers) return true;
+  const origin = req.headers.get('origin');
+  const host = req.headers.get('host');
+  if (origin && host) {
+    try {
+      const originHost = new URL(origin).host;
+      return originHost === host;
+    } catch (e) {
+      return false;
+    }
+  }
+  return true;
 }
 
 // ==========================================

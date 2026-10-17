@@ -1,6 +1,6 @@
 {
   "adminSettings": {
-    "passcode": "scrypt$e6c440e3d5acc56445871681792485de$041820ace9a45bf39015a432f2267380fe0733fada8d1147af71cd916ebcff2a1910c003dc231fd0ff7272c910ab2bd14795101f53e8b5b07169998dd591e756",
+    "passcode": "scrypt$6f4d0becf601af6726df5f2ef6e98711$34fff62a5ca1efd381669998c9472944f798f998be26eca89eb60c4d9f4c9ebb36739e6fae98cb5b539389a7e14febc50d1aa29a7db325a4a593f5e5c960d822",
     "adminEmail": "leonislamofficial123@gmail.com"
   },
   "mainInfo": {
@@ -26,7 +26,7 @@
       "Bug Bounty Hunter",
       "Offensive Security Enthusiast"
     ],
-    "updatedAt": "2026-10-17T13:16:45.193Z"
+    "updatedAt": "2026-10-17T13:47:38.864Z"
   },
   "education": [
     {

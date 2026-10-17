@@ -43,14 +43,11 @@ export default function AuthGuard({ children }) {
         const verifyRes = await fetch('/api/admin/auth', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
           body: JSON.stringify({ firebaseIdToken: idToken })
         });
         
         if (verifyRes.ok) {
-          const data = await verifyRes.json();
-          if (data.adminUser?.token) {
-            localStorage.setItem("luffy_admin_session", data.adminUser.token);
-          }
           setAuthorized(true);
         } else {
           await signOut(auth);

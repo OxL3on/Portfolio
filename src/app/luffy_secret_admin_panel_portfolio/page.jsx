@@ -61,20 +61,17 @@ export default function SecretAdminPortal() {
   const [newPasscode, setNewPasscode] = useState('');
   const [confirmPasscode, setConfirmPasscode] = useState('');
 
-  // Check existing session with server on mount
+  // Check existing server-validated session on mount
   useEffect(() => {
     const verifySession = async () => {
-      const token = localStorage.getItem('luffy_admin_session');
       try {
         const res = await fetch('/api/admin/auth', {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
           credentials: 'same-origin'
         });
         if (res.ok) {
           setIsAuthenticated(true);
           fetchAllData();
         } else {
-          localStorage.removeItem('luffy_admin_session');
           setIsAuthenticated(false);
         }
       } catch (err) {
@@ -99,7 +96,6 @@ export default function SecretAdminPortal() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        localStorage.setItem('luffy_admin_session', data.adminUser?.token || 'active');
         setIsAuthenticated(true);
         fetchAllData();
       } else {
@@ -116,7 +112,6 @@ export default function SecretAdminPortal() {
     try {
       await fetch('/api/admin/auth', { method: 'DELETE', credentials: 'same-origin' });
     } catch (e) {}
-    localStorage.removeItem('luffy_admin_session');
     setIsAuthenticated(false);
     setPasscode('');
   };
@@ -157,22 +152,13 @@ export default function SecretAdminPortal() {
     setTimeout(() => setSaveError(''), 4000);
   };
 
-  // Central authenticated fetch helper
+  // Central authenticated fetch helper using secure HttpOnly cookies
   const authFetch = async (url, options = {}) => {
-    const token = localStorage.getItem('luffy_admin_session');
-    const headers = {
-      ...(options.headers || {})
-    };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
     const res = await fetch(url, {
       ...options,
-      headers,
       credentials: 'same-origin'
     });
     if (res.status === 401) {
-      localStorage.removeItem('luffy_admin_session');
       setIsAuthenticated(false);
       notifyError('Admin session expired or invalid. Please sign in again.');
     }
@@ -270,9 +256,6 @@ export default function SecretAdminPortal() {
       });
       const data = await res.json();
       if (res.ok) {
-        if (data.token) {
-          localStorage.setItem('luffy_admin_session', data.token);
-        }
         notifySuccess('Master passcode updated successfully!');
         setCurrentPasscode('');
         setNewPasscode('');

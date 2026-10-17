@@ -42,4 +42,5 @@ next-env.d.ts
 
 # security & uploads
 src/data/.session_secret
+src/data/.sessions.json
 public/uploads/
