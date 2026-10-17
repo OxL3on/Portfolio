@@ -1,38 +1,56 @@
-import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
+import { getCollectionData, saveCollectionData } from "@/lib/db";
+import { validateAdminSession } from "@/lib/auth";
+
+const defaultEducation = [
+    {
+        id: "edu-1",
+        degree: "Bachelor of Science in Computer Science and Engineering",
+        institution: "Patuakhali Science and Technology University (PSTU)",
+        period: "2023 - Present",
+        major: "Computer Science & Engineering (5th Semester)"
+    },
+    {
+        id: "edu-2",
+        degree: "Higher Secondary Certificate (HSC)",
+        institution: "Government Syed Hatem Ali College, Barishal",
+        period: "2021 - 2023",
+        major: "Science"
+    }
+];
 
 export async function GET() {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-
-        // "education" কালেকশন থেকে ডাটা রিড করবে
-        const education = await db.collection("education").find({}).toArray();
-
-        return NextResponse.json(education.length > 0 ? education : []);
+        const education = await getCollectionData("education", defaultEducation);
+        return NextResponse.json(education.length > 0 ? education : defaultEducation);
     } catch (e) {
-        console.error("GET Education API Error:", e);
-        return NextResponse.json({ error: "Failed to fetch education" }, { status: 500 });
+        return NextResponse.json(defaultEducation);
     }
 }
 
 export async function POST(req) {
-    try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-        const body = await req.json();
+    const auth = await validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-        // যদি ডাটা array হয় (একাধিক এডুকেশন একসাথে ইনসার্ট করতে চাইলে)
+    try {
+        const body = await req.json();
+        const current = await getCollectionData("education", defaultEducation);
+
+        let updatedList = [];
         if (Array.isArray(body)) {
-            await db.collection("education").deleteMany({}); // আগের ডাটা ক্লিয়ার
-            const result = await db.collection("education").insertMany(body); // নতুন ডাটা ইনসার্ট
-            return NextResponse.json({ success: true, result });
+            updatedList = body;
+        } else {
+            const newItem = {
+                id: body.id || `edu-${Date.now()}`,
+                ...body
+            };
+            updatedList = [newItem, ...current];
         }
 
-        // যদি সিঙ্গেল অবজেক্ট পাঠায়
-        const result = await db.collection("education").insertOne(body);
-
-        return NextResponse.json({ success: true, result });
+        await saveCollectionData("education", updatedList);
+        return NextResponse.json({ success: true, result: updatedList });
     } catch (e) {
         console.error("POST Education API Error:", e);
         return NextResponse.json({ error: "Failed to update education", details: e.message }, { status: 500 });
@@ -40,54 +58,48 @@ export async function POST(req) {
 }
 
 export async function PUT(req) {
-    try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-        const body = await req.json();
+    const auth = await validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-        if (!body.degree) {
-            return NextResponse.json({ error: "Degree is required to update an education entry" }, { status: 400 });
+    try {
+        const body = await req.json();
+        const current = await getCollectionData("education", defaultEducation);
+        const index = current.findIndex(e => (body.id && e.id === body.id) || (body.degree && e.degree === body.degree));
+        
+        if (index >= 0) {
+            current[index] = { ...current[index], ...body };
+        } else {
+            current.push(body);
         }
 
-        // degree এর উপর ভিত্তি করে আপডেট করবে
-        const result = await db.collection("education").updateOne(
-            { degree: body.degree },
-            {
-                $set: {
-                    status: body.status,
-                    institution: body.institution,
-                    period: body.period,
-                    major: body.major
-                }
-            }
-        );
-
-        return NextResponse.json({ success: true, result });
+        await saveCollectionData("education", current);
+        return NextResponse.json({ success: true, result: current });
     } catch (e) {
-        console.error("PUT Education API Error:", e);
-        return NextResponse.json({ error: "Failed to update education", details: e.message }, { status: 500 });
+        return NextResponse.json({ error: "Failed to edit education" }, { status: 500 });
     }
 }
 
 export async function DELETE(req) {
+    const auth = await validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-
         const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
         const degree = searchParams.get('degree');
-
-        if (degree) {
-            // যদি degree দেওয়া থাকে (যেমন: /api/education?degree=HSC), তাহলে শুধু ওই এডুকেশন ডিলিট করবে
-            const result = await db.collection("education").deleteOne({ degree });
-            return NextResponse.json({ success: true, result });
-        } else {
-            // যদি degree না থাকে, তাহলে সব ডেটা ক্লিয়ার করে ফেলবে
-            const result = await db.collection("education").deleteMany({});
-            return NextResponse.json({ success: true, result });
+        if (!id && !degree) {
+            return NextResponse.json({ error: "Identifier required" }, { status: 400 });
         }
+
+        const current = await getCollectionData("education", defaultEducation);
+        const filtered = current.filter(e => (!id || e.id !== id) && (!degree || e.degree !== degree));
+        await saveCollectionData("education", filtered);
+        return NextResponse.json({ success: true, result: filtered });
     } catch (e) {
-        console.error("DELETE Education API Error:", e);
-        return NextResponse.json({ error: "Failed to delete education", details: e.message }, { status: 500 });
+        return NextResponse.json({ error: "Failed to delete education" }, { status: 500 });
     }
 }

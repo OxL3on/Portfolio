@@ -15,6 +15,8 @@ export default function HomeDataLoader({ children }) {
         { key: 'educationData', fetcher: () => fetch('/api/education').then(res => res.json()) },
         { key: 'experienceData', fetcher: () => fetch('/api/journey').then(res => res.json()) },
         { key: 'achievementData', fetcher: () => fetch('/api/achievements').then(res => res.json()) },
+        { key: 'certificationsData', fetcher: () => fetch('/api/certifications').then(res => res.json()) },
+        { key: 'blogsData', fetcher: () => fetch('/api/blogs').then(res => res.json()) },
       ]);
       // Small artificially wait so component mounting does not flash
       setTimeout(() => setIsLoading(false), 50);

@@ -13,7 +13,7 @@ const Footer = () => {
       <div className="max-w-5xl mx-auto px-4 border-t border-black/5 dark:border-white/5 pt-10 text-center">
         <div className="flex flex-col items-center gap-3">
           <div className="text-[13px] text-gray-500 font-medium">
-            <p>© 2026 Prodip Hore. All Rights Reserved.</p>
+            <p>© 2026 MD Leon Islam. All Rights Reserved.</p>
           </div>
 
           {/* Credits

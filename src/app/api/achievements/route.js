@@ -1,95 +1,126 @@
-import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
+import { getCollectionData, saveCollectionData } from "@/lib/db";
+import { validateAdminSession } from "@/lib/auth";
+
+const defaultAchievements = [
+    {
+        id: "ach-1",
+        title: "Top 1% Rank on TryHackMe",
+        type: "CTF & Pentesting",
+        date: "2024",
+        rank: "Top 1%",
+        result: "Ranked #1 in University",
+        description: "Solved 80+ vulnerable machines and challenges covering Linux privilege escalation, Active Directory exploitation, and web application security."
+    },
+    {
+        id: "ach-2",
+        title: "National Cyber Drill 2024",
+        type: "Competition",
+        date: "Dec 2024",
+        rank: "Top 10",
+        result: "Finalist",
+        description: "Participated in national level cyber incident handling, digital forensics, threat hunting, and defensive security simulation exercises."
+    },
+    {
+        id: "ach-3",
+        title: "PSTU Intra University CTF",
+        type: "Jeopardy CTF",
+        date: "Oct 2024",
+        rank: "1st Place",
+        result: "Champion",
+        description: "Secured 1st position solving web exploitation, reverse engineering, cryptography, and network forensics challenges."
+    },
+    {
+        id: "ach-4",
+        title: "Hack The Box University CTF",
+        type: "Global CTF",
+        date: "2024",
+        rank: "Top 5%",
+        result: "Qualified",
+        description: "Competed globally against collegiate cybersecurity teams solving complex offensive security challenges."
+    }
+];
 
 export async function GET() {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-
-        // "achievements" কালেকশন থেকে ডাটা রিড করবে
-        const achievements = await db.collection("achievements").find({}).sort({ _id: -1 }).toArray();
-
-        return NextResponse.json(achievements.length > 0 ? achievements : []);
+        const achievements = await getCollectionData("achievements", defaultAchievements);
+        return NextResponse.json(achievements.length > 0 ? achievements : defaultAchievements);
     } catch (e) {
-        console.error("GET Achievements API Error:", e);
-        return NextResponse.json({ error: "Failed to fetch achievements" }, { status: 500 });
+        return NextResponse.json(defaultAchievements);
     }
 }
 
 export async function POST(req) {
-    try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-        const body = await req.json();
+    const auth = await validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-        // যদি ডাটা array হয় (একাধিক achievement একসাথে ইনসার্ট করতে চাইলে)
+    try {
+        const body = await req.json();
+        const current = await getCollectionData("achievements", defaultAchievements);
+
+        let updatedList = [];
         if (Array.isArray(body)) {
-            await db.collection("achievements").deleteMany({}); // আগের ডাটা ক্লিয়ার
-            const mappedBody = body.map(item => ({ ...item, createdAt: new Date() }));
-            const result = await db.collection("achievements").insertMany(mappedBody); // নতুন ডাটা ইনসার্ট
-            return NextResponse.json({ success: true, result });
+            updatedList = body;
+        } else {
+            const newItem = {
+                id: body.id || `ach-${Date.now()}`,
+                ...body
+            };
+            updatedList = [newItem, ...current];
         }
 
-        // যদি সিঙ্গেল অবজেক্ট পাঠায়
-        const newEntry = { ...body, createdAt: new Date() };
-        const result = await db.collection("achievements").insertOne(newEntry);
-
-        return NextResponse.json({ success: true, result });
+        await saveCollectionData("achievements", updatedList);
+        return NextResponse.json({ success: true, result: updatedList });
     } catch (e) {
-        console.error("POST Achievements API Error:", e);
         return NextResponse.json({ error: "Failed to update achievements", details: e.message }, { status: 500 });
     }
 }
 
 export async function PUT(req) {
-    try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-        const body = await req.json();
+    const auth = await validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-        if (!body.title) {
-            return NextResponse.json({ error: "Title is required to update an achievement" }, { status: 400 });
+    try {
+        const body = await req.json();
+        const current = await getCollectionData("achievements", defaultAchievements);
+        const index = current.findIndex(a => (body.id && a.id === body.id) || (body.title && a.title === body.title));
+
+        if (index >= 0) {
+            current[index] = { ...current[index], ...body };
+        } else {
+            current.push({ ...body, id: body.id || `ach-${Date.now()}` });
         }
 
-        // title এর উপর ভিত্তি করে আপডেট করবে
-        const result = await db.collection("achievements").updateOne(
-            { title: body.title },
-            {
-                $set: {
-                    type: body.type,
-                    date: body.date,
-                    rank: body.rank,
-                    result: body.result
-                }
-            }
-        );
-
-        return NextResponse.json({ success: true, result });
+        await saveCollectionData("achievements", current);
+        return NextResponse.json({ success: true, result: current });
     } catch (e) {
-        console.error("PUT Achievements API Error:", e);
-        return NextResponse.json({ error: "Failed to update achievements", details: e.message }, { status: 500 });
+        return NextResponse.json({ error: "Failed to update achievement" }, { status: 500 });
     }
 }
 
 export async function DELETE(req) {
+    const auth = await validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-
         const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
         const title = searchParams.get('title');
-
-        if (title) {
-            // যদি title দেওয়া থাকে (যেমন: /api/achievements?title=Codeforces...), তাহলে শুধু ওই achievement ডিলিট করবে
-            const result = await db.collection("achievements").deleteOne({ title });
-            return NextResponse.json({ success: true, result });
-        } else {
-            // যদি title না থাকে, তাহলে সব ডেটা ক্লিয়ার করে ফেলবে
-            const result = await db.collection("achievements").deleteMany({});
-            return NextResponse.json({ success: true, result });
+        if (!id && !title) {
+            return NextResponse.json({ error: "Identifier required" }, { status: 400 });
         }
+
+        const current = await getCollectionData("achievements", defaultAchievements);
+        const filtered = current.filter(a => (!id || a.id !== id) && (!title || a.title !== title));
+        await saveCollectionData("achievements", filtered);
+        return NextResponse.json({ success: true, result: filtered });
     } catch (e) {
-        console.error("DELETE Achievements API Error:", e);
-        return NextResponse.json({ error: "Failed to delete achievements", details: e.message }, { status: 500 });
+        return NextResponse.json({ error: "Failed to delete achievement" }, { status: 500 });
     }
 }

@@ -10,23 +10,47 @@ export default function AuthGuard({ children }) {
   const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
+    if (!auth) {
+      fetch('/api/admin/auth')
+        .then(res => {
+          if (res.ok) {
+            setAuthorized(true);
+          } else {
+            router.push('/login');
+          }
+        })
+        .catch(() => router.push('/login'))
+        .finally(() => setLoading(false));
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
+        try {
+          const res = await fetch('/api/admin/auth');
+          if (res.ok) {
+            setAuthorized(true);
+            setLoading(false);
+            return;
+          }
+        } catch (e) {}
         router.push('/login');
         return;
       }
 
       try {
-        const res = await fetch('/api/maininfo');
-        const data = await res.json();
-        const adminEmail = data?.gmail || "prodiphore2005@gmail.com";
+        const idToken = await user.getIdToken();
+        const verifyRes = await fetch('/api/admin/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ firebaseIdToken: idToken })
+        });
         
-        if (user.email === adminEmail) {
+        if (verifyRes.ok) {
           setAuthorized(true);
         } else {
-          // Email mismatch! Not the admin.
           await signOut(auth);
-          alert("Unauthorized access. Only admin can login here.");
           router.push('/');
         }
       } catch (e) {
@@ -37,7 +61,9 @@ export default function AuthGuard({ children }) {
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
   }, [router]);
 
   if (loading || !authorized) {

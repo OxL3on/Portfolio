@@ -15,87 +15,45 @@ const geistMono = Geist_Mono({
 // --- Advanced Optimized Metadata ---
 export const metadata = {
   title: {
-    default: 'Prodip Hore | MERN Stack Developer & ML Enthusiast',
-    template: '%s | Prodip Hore',
+    default: 'MD Leon Islam | Cybersecurity Student',
+    template: '%s | MD Leon Islam',
   },
   description:
-    'Official portfolio of Prodip Hore. A MERN Stack Developer, Competitive Programmer, and Machine Learning Enthusiast studying CSE at Patuakhali Science and Technology University (PSTU).',
+    'Official portfolio of MD Leon Islam. A Cybersecurity Student exploring web application security, penetration testing, and offensive security.',
 
   keywords: [
-    'Prodip Hore',
-    'Prodip Hore PSTU',
-    'Prodip Hore Portfolio',
-    'MERN Stack Developer Bangladesh',
-    'Patuakhali Science and Technology University',
-    'CSE Student PSTU',
-    'Machine Learning Engineer Bangladesh',
-    'Competitive Programmer',
-    'Next.js Developer',
-    'React Developer',
-    'Full Stack Developer Bangladesh',
+    'MD Leon Islam',
+    'Leon Islam',
+    'Luffy',
+    'OxL3on',
+    'Cybersecurity Student',
+    'Web Application Security',
+    'Penetration Testing',
+    'Offensive Security',
+    'Network Security',
+    'API Security',
+    'Security Research',
+    'Bangladesh',
   ],
 
-  authors: [{ name: 'Prodip Hore', url: 'https://github.com/prodip2005' }],
-  creator: 'Prodip Hore',
-  publisher: 'Prodip Hore',
+  authors: [{ name: 'MD Leon Islam', url: 'https://github.com/OxL3on' }],
+  creator: 'MD Leon Islam',
+  publisher: 'MD Leon Islam',
 
-  // লিঙ্ক শেয়ার করলে যা দেখাবে (Open Graph)
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://prodip-cse-21.vercel.app',
-    title: 'Prodip Hore - Portfolio',
+    title: 'MD Leon Islam - Cybersecurity Student',
     description:
-      'Building scalable web solutions and exploring intelligent systems. Check out my latest MERN and ML projects.',
-    siteName: 'Prodip Hore Portfolio',
-    images: [
-      {
-        url: 'https://i.ibb.co.com/RkfqzktR/190808987.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Prodip Hore Profile Picture',
-      },
-      {
-        url: 'https://i.ibb.co.com/gMRFWqxZ/2026-03-21-160000-hyprshot.png',
-        width: 1200,
-        height: 630,
-        alt: 'Prodip Hore Portfolio Home',
-      },
-      {
-        url: 'https://i.ibb.co.com/5x4vfvk7/2026-03-21-160017-hyprshot.png',
-        width: 1200,
-        height: 630,
-        alt: 'Prodip Hore About Section',
-      },
-      {
-        url: 'https://i.ibb.co.com/PZxdnnZb/2026-03-21-160036-hyprshot.png',
-        width: 1200,
-        height: 630,
-        alt: 'Prodip Hore Projects',
-      },
-      {
-        url: 'https://i.ibb.co.com/bg9y1Jgs/2026-03-21-160101-hyprshot.png',
-        width: 1200,
-        height: 630,
-        alt: 'Prodip Hore Experience',
-      },
-      {
-        url: 'https://i.ibb.co.com/z0rqYZF/2026-03-21-160205-hyprshot.png',
-        width: 1200,
-        height: 630,
-        alt: 'Prodip Hore Contact',
-      },
-    ],
+      'Cybersecurity student exploring web application security, penetration testing, and offensive security.',
+    siteName: 'MD Leon Islam Portfolio',
   },
 
-  // টুইটার বা এক্স প্রিভিউ
   twitter: {
     card: 'summary_large_image',
-    title: 'Prodip Hore | Full Stack Developer',
+    title: 'MD Leon Islam | Cybersecurity Student',
     description:
-      'Exploring the intersection of Web Development and Machine Learning.',
-    creator: '@prodiphore',
-    images: ['https://i.ibb.co.com/RkfqzktR/190808987.jpg'], // মেইন প্রোফাইল পিক
+      'Cybersecurity student passionate about web security, penetration testing, and continuous learning.',
   },
 
   robots: {
@@ -109,6 +67,11 @@ export const metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
+  },
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/favicon.ico',
+    apple: '/logo.png',
   },
 };
 

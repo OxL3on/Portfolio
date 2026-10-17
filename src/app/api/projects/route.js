@@ -1,37 +1,92 @@
-import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
+import { getCollectionData, saveCollectionData } from "@/lib/db";
+import { validateAdminSession } from "@/lib/auth";
 
-export async function GET() {
+const defaultProjects = [
+    {
+        id: "proj-1",
+        title: 'Automated Vulnerability Scanner',
+        type: 'Security Tool',
+        date: '2024',
+        Date: '2024',
+        description: 'A multi-threaded vulnerability scanner designed to detect web application misconfigurations, unpatched CVEs, and OWASP Top 10 vulnerabilities.',
+        tags: ['Python', 'Socket', 'BeautifulSoup', 'CVE Detection', 'Security'],
+        github: 'https://github.com/OxL3on',
+    },
+    {
+        id: "proj-2",
+        title: 'Network Recon & Port Scanner',
+        type: 'Network Security',
+        date: '2024',
+        Date: '2024',
+        description: 'High-performance network reconnaissance tool with asynchronous service enumeration, TCP/UDP port scanning, and banner grabbing.',
+        tags: ['Python', 'Networking', 'TCP/IP', 'Scapy', 'Nmap Engine'],
+        github: 'https://github.com/OxL3on',
+    },
+    {
+        id: "proj-3",
+        title: 'JWT Flaw Exploiter & Analyzer',
+        type: 'Web Security',
+        date: '2023',
+        Date: '2023',
+        description: 'Automated security testing script for JSON Web Tokens, testing for signature strip bypasses, algorithm confusion, and brute-forcing weak keys.',
+        tags: ['Python', 'Cryptography', 'JWT', 'REST API', 'Offensive Sec'],
+        github: 'https://github.com/OxL3on',
+    },
+    {
+        id: "proj-4",
+        title: 'Subdomain & Attack Surface Enumerator',
+        type: 'Bug Bounty Tool',
+        date: '2023',
+        Date: '2023',
+        description: 'Fast asynchronous OSINT reconnaissance script aggregating Certificate Transparency logs and passive DNS records to uncover target attack surfaces.',
+        tags: ['Bash', 'Python', 'OSINT', 'Bug Bounty', 'Automation'],
+        github: 'https://github.com/OxL3on',
+    }
+];
+
+export async function GET(req) {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
+        const { searchParams } = new URL(req.url);
+        const title = searchParams.get('title');
 
-        const projects = await db.collection("projects").find({}).sort({ _id: -1 }).toArray();
+        const projects = await getCollectionData("projects", defaultProjects);
 
-        return NextResponse.json(projects.length > 0 ? projects : []);
+        if (title) {
+            const project = projects.find(p => p.title === title);
+            return NextResponse.json(project || defaultProjects[0]);
+        }
+
+        return NextResponse.json(projects.length > 0 ? projects : defaultProjects);
     } catch (e) {
-        console.error("GET Projects API Error:", e);
-        return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 });
+        return NextResponse.json(defaultProjects);
     }
 }
 
 export async function POST(req) {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-        const body = await req.json();
-
-        // Add automatic creation date
-        if (Array.isArray(body)) {
-            const mappedBody = body.map(item => ({ ...item, createdAt: new Date() }));
-            await db.collection("projects").deleteMany({});
-            const result = await db.collection("projects").insertMany(mappedBody);
-            return NextResponse.json({ success: true, result });
+        const session = await validateAdminSession(req);
+        if (!session.isValid) {
+            return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
         }
 
-        const newEntry = { ...body, createdAt: new Date() };
-        const result = await db.collection("projects").insertOne(newEntry);
-        return NextResponse.json({ success: true, result });
+        const body = await req.json();
+        const current = await getCollectionData("projects", defaultProjects);
+
+        let updatedList = [];
+        if (Array.isArray(body)) {
+            updatedList = body;
+        } else {
+            const newItem = {
+                id: body.id || `proj-${Date.now()}`,
+                ...body,
+                createdAt: new Date()
+            };
+            updatedList = [newItem, ...current];
+        }
+
+        await saveCollectionData("projects", updatedList);
+        return NextResponse.json({ success: true, result: updatedList });
     } catch (e) {
         console.error("POST Projects API Error:", e);
         return NextResponse.json({ error: "Failed to update projects", details: e.message }, { status: 500 });
@@ -40,53 +95,48 @@ export async function POST(req) {
 
 export async function PUT(req) {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-        const body = await req.json();
-
-        if (!body.title) {
-            return NextResponse.json({ error: "Title is required" }, { status: 400 });
+        const session = await validateAdminSession(req);
+        if (!session.isValid) {
+            return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
         }
 
-        const result = await db.collection("projects").updateOne(
-            { title: body.title },
-            {
-                $set: {
-                    image: body.image,
-                    type: body.type,
-                    date: body.date,
-                    description: body.description,
-                    tags: body.tags,
-                    github: body.github,
-                    live: body.live
-                }
-            }
-        );
+        const body = await req.json();
+        const current = await getCollectionData("projects", defaultProjects);
+        const index = current.findIndex(p => p.id === body.id || p.title === body.title);
 
-        return NextResponse.json({ success: true, result });
+        if (index >= 0) {
+            current[index] = { ...current[index], ...body, updatedAt: new Date() };
+        } else {
+            current.push({ ...body, id: body.id || `proj-${Date.now()}` });
+        }
+
+        await saveCollectionData("projects", current);
+        return NextResponse.json({ success: true, result: current });
     } catch (e) {
-        console.error("PUT Projects API Error:", e);
-        return NextResponse.json({ error: "Failed to update projects" }, { status: 500 });
+        return NextResponse.json({ error: "Failed to update project" }, { status: 500 });
     }
 }
 
 export async function DELETE(req) {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
+        const session = await validateAdminSession(req);
+        if (!session.isValid) {
+            return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
+        }
 
         const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
         const title = searchParams.get('title');
 
-        if (title) {
-            const result = await db.collection("projects").deleteOne({ title });
-            return NextResponse.json({ success: true, result });
-        } else {
-            const result = await db.collection("projects").deleteMany({});
-            return NextResponse.json({ success: true, result });
+        if (!id && !title) {
+            return NextResponse.json({ error: "Missing required query parameter: id or title" }, { status: 400 });
         }
+
+        const current = await getCollectionData("projects", defaultProjects);
+        const filtered = current.filter(p => p.id !== id && p.title !== title);
+        await saveCollectionData("projects", filtered);
+        return NextResponse.json({ success: true, result: filtered });
     } catch (e) {
-        console.error("DELETE Projects API Error:", e);
-        return NextResponse.json({ error: "Failed to delete projects" }, { status: 500 });
+        return NextResponse.json({ error: "Failed to delete project" }, { status: 500 });
     }
 }

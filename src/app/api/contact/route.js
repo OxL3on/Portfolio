@@ -1,75 +1,59 @@
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import { NextResponse } from "next/server";
+import { getCollectionData, saveCollectionData } from "@/lib/db";
+import { validateAdminSession, sanitizeUrl } from "@/lib/auth";
+
+const defaultContacts = [
+    { name: "github", username: "OxL3on", link: "https://github.com/OxL3on" },
+    { name: "linkedin", username: "MD Leon Islam", link: "https://www.linkedin.com/in/mdleonislam/" },
+    { name: "discord", username: "luffy_111000", link: "https://discord.com/users/luffy_111000" },
+    { name: "twitter", username: "OxL3on", link: "https://twitter.com/OxL3on" },
+    { name: "tryhackme", username: "OxL3on", link: "https://tryhackme.com/p/OxL3on" },
+    { name: "hackthebox", username: "OxL3on", link: "https://app.hackthebox.com/profile/OxL3on" },
+    { name: "medium", username: "@OxL3on", link: "https://medium.com/@OxL3on" }
+];
 
 export async function GET() {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio");
-        const contacts = await db.collection("contacts").find({}).toArray();
-        return new Response(JSON.stringify(contacts), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-        });
+        const contacts = await getCollectionData("contact", defaultContacts);
+        return NextResponse.json(contacts && contacts.length > 0 ? contacts : defaultContacts);
     } catch (error) {
-        return new Response(JSON.stringify({ error: "Failed to fetch contacts" }), { status: 500 });
+        return NextResponse.json(defaultContacts);
     }
 }
 
 export async function POST(req) {
+    const auth = await validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const data = await req.json();
-        const client = await clientPromise;
-        const db = client.db("portfolio");
+        const current = await getCollectionData("contact", defaultContacts);
 
+        let updated = [];
         if (Array.isArray(data)) {
-            const result = await db.collection("contacts").insertMany(data);
-            return new Response(JSON.stringify({ success: true, insertedCount: result.insertedCount }), { status: 201 });
+            updated = data.map(item => ({
+                ...item,
+                link: item.link ? sanitizeUrl(item.link) : ""
+            }));
         } else {
-            const result = await db.collection("contacts").insertOne(data);
-            return new Response(JSON.stringify({ success: true, insertedId: result.insertedId }), { status: 201 });
-        }
-    } catch (error) {
-        return new Response(JSON.stringify({ error: "Failed to create contact(s)" }), { status: 500 });
-    }
-}
-
-export async function PUT(req) {
-    try {
-        const body = await req.json();
-        const { id, ...updateData } = body;
-
-        if (!id) {
-            return new Response(JSON.stringify({ error: "ID is required" }), { status: 400 });
+            const cleanData = {
+                ...data,
+                link: data.link ? sanitizeUrl(data.link) : ""
+            };
+            const index = current.findIndex(c => c.name && cleanData.name && c.name.toLowerCase() === cleanData.name.toLowerCase());
+            if (index >= 0) {
+                current[index] = { ...current[index], ...cleanData };
+                updated = current;
+            } else {
+                updated = [...current, cleanData];
+            }
         }
 
-        const client = await clientPromise;
-        const db = client.db("portfolio");
-        const result = await db.collection("contacts").updateOne(
-            { _id: new ObjectId(id) },
-            { $set: updateData }
-        );
-
-        return new Response(JSON.stringify({ success: true, modifiedCount: result.modifiedCount }), { status: 200 });
+        await saveCollectionData("contact", updated);
+        return NextResponse.json({ success: true, result: updated });
     } catch (error) {
-        return new Response(JSON.stringify({ error: "Failed to update contact" }), { status: 500 });
-    }
-}
-
-export async function DELETE(req) {
-    try {
-        const url = new URL(req.url);
-        const id = url.searchParams.get("id");
-
-        if (!id) {
-            return new Response(JSON.stringify({ error: "ID is required" }), { status: 400 });
-        }
-
-        const client = await clientPromise;
-        const db = client.db("portfolio");
-        const result = await db.collection("contacts").deleteOne({ _id: new ObjectId(id) });
-
-        return new Response(JSON.stringify({ success: true, deletedCount: result.deletedCount }), { status: 200 });
-    } catch (error) {
-        return new Response(JSON.stringify({ error: "Failed to delete contact" }), { status: 500 });
+        return NextResponse.json({ error: "Failed to update contact(s)" }, { status: 500 });
     }
 }

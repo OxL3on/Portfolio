@@ -10,15 +10,30 @@ const Achievement = () => {
     return await res.json();
   });
   
-  const achievementsData = fullachievements ? fullachievements.slice(0, 2) : [];
-
-  if (!isLoading && achievementsData.length === 0) {
-    return null;
-  }
+  const defaultAchievements = [
+    {
+      title: "National Cyber Drill 2024",
+      type: "CTF / Cyber Drill",
+      date: "Dec 2024",
+      rank: "Top 10",
+      result: "Finalist",
+      description: "Participated in national level cyber defense drill testing vulnerability assessment, incident response, and forensic capabilities."
+    },
+    {
+      title: "PSTU Intra University CTF",
+      type: "Jeopardy CTF",
+      date: "Oct 2024",
+      rank: "1st Place",
+      result: "Champion",
+      description: "Secured 1st position solving web exploitation, reverse engineering, cryptography, and network forensics challenges."
+    }
+  ];
+  
+  const achievementsData = (fullachievements && fullachievements.length > 0) ? fullachievements.slice(0, 2) : defaultAchievements;
 
   return (
-    <section className="bg-card/90 backdrop-blur-md p-8 rounded-3xl border border-gray-800 shadow-2xl">
-      <div className="flex justify-between items-center mb-6">
+    <section className="bg-card/90 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-gray-800 shadow-2xl">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
         <div>
           <span className="text-primary text-[10px] font-bold uppercase tracking-[0.2em]">
             Achievements
@@ -33,9 +48,9 @@ const Achievement = () => {
         </div>
         <Link
           href="/achievements"
-          className="text-gray-400 hover:text-primary text-xs font-semibold transition-colors"
+          className="text-gray-400 hover:text-primary text-xs font-semibold transition-colors shrink-0"
         >
-          View all achievements
+          View all achievements →
         </Link>
       </div>
 
@@ -65,23 +80,9 @@ const Achievement = () => {
                 </div>
               </div>
 
-              <h3 className="text-lg font-bold text-gray-200 mb-6 group-hover:text-foreground transition-colors">
+              <h3 className="text-lg font-bold text-gray-200 mb-2 group-hover:text-foreground transition-colors">
                 {item.title}
               </h3>
-
-              <div className="flex justify-between items-center pt-4 border-t border-gray-800">
-                <div>
-                  <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest">
-                    Result
-                  </p>
-                  <p className="text-sm text-gray-300 font-semibold">
-                    {item.result}
-                  </p>
-                </div>
-                <button className="bg-gray-800/50 hover:bg-gray-700 text-gray-300 px-4 py-1.5 rounded-xl text-xs font-medium transition-all">
-                  Writeup
-                </button>
-              </div>
             </div>
           ))}
         </div>

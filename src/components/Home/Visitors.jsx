@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 const Visitors = () => {
   const [mounted, setMounted] = useState(false);
-  const githubUsername = 'prodip2005'; 
+  const githubUsername = 'OxL3on'; 
 
   useEffect(() => {
     setMounted(true);
@@ -21,7 +21,7 @@ const Visitors = () => {
 
       <div className="flex justify-center items-center h-28 bg-background/50 rounded-2xl border border-gray-800/60 overflow-hidden relative group-hover:border-primary/20 transition-all">
         {mounted ? (
-          <div className="flex justify-center items-center">
+          <div className="relative w-full h-full flex justify-center items-center">
             <Image
               src={counterUrl}
               alt="Dynamic Visitor Counter"
