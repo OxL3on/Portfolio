@@ -1132,6 +1132,40 @@ export default function SecretAdminPortal() {
                           className="w-full bg-background border border-gray-700 rounded-lg p-2 text-xs"
                         />
                       </div>
+                      <div className="sm:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] text-gray-400 uppercase font-bold block mb-1">
+                            GitHub Repository / Link
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="https://github.com/OxL3on"
+                            value={b.github || ''}
+                            onChange={(e) => {
+                              const updated = [...blogs];
+                              updated[idx].github = e.target.value;
+                              setBlogs(updated);
+                            }}
+                            className="w-full bg-background border border-gray-700 rounded-lg p-2 text-xs font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] text-gray-400 uppercase font-bold block mb-1">
+                            Medium Article Link
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="https://medium.com/@OxL3on"
+                            value={b.medium || ''}
+                            onChange={(e) => {
+                              const updated = [...blogs];
+                              updated[idx].medium = e.target.value;
+                              setBlogs(updated);
+                            }}
+                            className="w-full bg-background border border-gray-700 rounded-lg p-2 text-xs font-mono"
+                          />
+                        </div>
+                      </div>
                       <div className="sm:col-span-3">
                         <label className="text-[10px] text-gray-400 uppercase font-bold block mb-1">
                           Full Markdown Content (Headers, Code blocks, Images \`![alt](url)\`)

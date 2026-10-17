@@ -59,6 +59,14 @@ const PLATFORM_CONFIG = [
   }
 ];
 
+const formatExternalUrl = (url, fallback = '') => {
+  if (!url || typeof url !== 'string') return fallback;
+  const trimmed = url.trim();
+  if (!trimmed) return fallback;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+};
+
 const BlogCard = ({ post }) => {
   return (
     <article className="bg-background/40 backdrop-blur-sm border border-gray-800/80 p-5 md:p-6 rounded-2xl hover:border-primary/40 hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300 group flex flex-col justify-between h-full">
@@ -82,7 +90,7 @@ const BlogCard = ({ post }) => {
           </Link>
           <span className="text-gray-700">•</span>
           <a
-            href={post.github || "https://github.com/OxL3on"}
+            href={formatExternalUrl(post.github, "https://github.com/OxL3on")}
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-400 hover:text-foreground font-semibold transition-colors"
@@ -91,7 +99,7 @@ const BlogCard = ({ post }) => {
           </a>
           <span className="text-gray-700">•</span>
           <a
-            href={post.medium || "https://medium.com/@OxL3on"}
+            href={formatExternalUrl(post.medium, "https://medium.com/@OxL3on")}
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-400 hover:text-foreground font-semibold transition-colors"

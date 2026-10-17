@@ -23,6 +23,14 @@ const defaultBlogs = [
   }
 ];
 
+const formatExternalUrl = (url, fallback = '') => {
+  if (!url || typeof url !== 'string') return fallback;
+  const trimmed = url.trim();
+  if (!trimmed) return fallback;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+};
+
 const Blog = () => {
   const { data: blogsData, isLoading } = useSharedData('blogsData', async () => {
     const res = await fetch('/api/blogs');
@@ -79,7 +87,7 @@ const Blog = () => {
                   </Link>
                   <span className="text-gray-700">•</span>
                   <a
-                    href={post.github || "https://github.com/OxL3on"}
+                    href={formatExternalUrl(post.github, "https://github.com/OxL3on")}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-foreground font-semibold transition-colors"
@@ -88,7 +96,7 @@ const Blog = () => {
                   </a>
                   <span className="text-gray-700">•</span>
                   <a
-                    href={post.medium || "https://medium.com/@OxL3on"}
+                    href={formatExternalUrl(post.medium, "https://medium.com/@OxL3on")}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-foreground font-semibold transition-colors"
