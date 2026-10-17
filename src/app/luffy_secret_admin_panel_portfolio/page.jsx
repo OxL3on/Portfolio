@@ -1032,8 +1032,8 @@ export default function SecretAdminPortal() {
                       date: 'Oct 2024',
                       readTime: '6 min read',
                       author: 'MD Leon Islam',
-                      github: 'https://github.com/OxL3on',
-                      medium: 'https://medium.com/@OxL3on',
+                      github: '',
+                      medium: '',
                       content: '# New Writeup\n\nWrite your markdown content here...'
                     };
                     setBlogs([newBlog, ...blogs]);
@@ -1132,38 +1132,178 @@ export default function SecretAdminPortal() {
                           className="w-full bg-background border border-gray-700 rounded-lg p-2 text-xs"
                         />
                       </div>
-                      <div className="sm:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[10px] text-gray-400 uppercase font-bold block mb-1">
-                            GitHub Repository / Link
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="https://github.com/OxL3on"
-                            value={b.github || ''}
-                            onChange={(e) => {
-                              const updated = [...blogs];
-                              updated[idx].github = e.target.value;
-                              setBlogs(updated);
-                            }}
-                            className="w-full bg-background border border-gray-700 rounded-lg p-2 text-xs font-mono"
-                          />
+
+                      {/* External Reading Destinations Control */}
+                      <div className="sm:col-span-3 bg-background/60 p-4 rounded-xl border border-gray-800 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800/60 pb-2.5">
+                          <div>
+                            <span className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
+                              External Reading Destinations
+                            </span>
+                            <p className="text-[10px] text-gray-400">
+                              Select where readers can access this writeup aside from your website (pick one, both, or neither).
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px]">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = [...blogs];
+                                updated[idx].github = '';
+                                updated[idx].medium = '';
+                                setBlogs(updated);
+                              }}
+                              className={`px-2 py-1 rounded-md border font-semibold transition-all ${
+                                !b.github && !b.medium
+                                  ? 'bg-primary/20 border-primary text-primary'
+                                  : 'bg-background border-gray-800 text-gray-400 hover:text-foreground'
+                              }`}
+                            >
+                              Website Only
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = [...blogs];
+                                if (!updated[idx].github) updated[idx].github = 'https://github.com/OxL3on';
+                                updated[idx].medium = '';
+                                setBlogs(updated);
+                              }}
+                              className={`px-2 py-1 rounded-md border font-semibold transition-all ${
+                                b.github && !b.medium
+                                  ? 'bg-primary/20 border-primary text-primary'
+                                  : 'bg-background border-gray-800 text-gray-400 hover:text-foreground'
+                              }`}
+                            >
+                              GitHub Only
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = [...blogs];
+                                updated[idx].github = '';
+                                if (!updated[idx].medium) updated[idx].medium = 'https://medium.com/@OxL3on';
+                                setBlogs(updated);
+                              }}
+                              className={`px-2 py-1 rounded-md border font-semibold transition-all ${
+                                !b.github && b.medium
+                                  ? 'bg-primary/20 border-primary text-primary'
+                                  : 'bg-background border-gray-800 text-gray-400 hover:text-foreground'
+                              }`}
+                            >
+                              Medium Only
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = [...blogs];
+                                if (!updated[idx].github) updated[idx].github = 'https://github.com/OxL3on';
+                                if (!updated[idx].medium) updated[idx].medium = 'https://medium.com/@OxL3on';
+                                setBlogs(updated);
+                              }}
+                              className={`px-2 py-1 rounded-md border font-semibold transition-all ${
+                                b.github && b.medium
+                                  ? 'bg-primary/20 border-primary text-primary'
+                                  : 'bg-background border-gray-800 text-gray-400 hover:text-foreground'
+                              }`}
+                            >
+                              Both
+                            </button>
+                          </div>
                         </div>
-                        <div>
-                          <label className="text-[10px] text-gray-400 uppercase font-bold block mb-1">
-                            Medium Article Link
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="https://medium.com/@OxL3on"
-                            value={b.medium || ''}
-                            onChange={(e) => {
-                              const updated = [...blogs];
-                              updated[idx].medium = e.target.value;
-                              setBlogs(updated);
-                            }}
-                            className="w-full bg-background border border-gray-700 rounded-lg p-2 text-xs font-mono"
-                          />
+
+                        {/* Interactive Checkbox + URL Inputs */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          {/* GitHub Choice */}
+                          <div className={`p-3 rounded-lg border transition-all ${b.github ? 'bg-primary/5 border-primary/40' : 'bg-background/40 border-gray-800/80'}`}>
+                            <label className="flex items-center gap-2 cursor-pointer mb-2">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(b.github && b.github.trim())}
+                                onChange={(e) => {
+                                  const updated = [...blogs];
+                                  if (e.target.checked) {
+                                    updated[idx].github = 'https://github.com/OxL3on';
+                                  } else {
+                                    updated[idx].github = '';
+                                  }
+                                  setBlogs(updated);
+                                }}
+                                className="w-3.5 h-3.5 accent-primary rounded cursor-pointer"
+                              />
+                              <span className="text-[11px] font-bold text-foreground flex items-center gap-1">
+                                GitHub Writeup Link
+                              </span>
+                            </label>
+                            <input
+                              type="text"
+                              disabled={!b.github && b.github !== undefined}
+                              placeholder={b.github ? "https://github.com/..." : "Enable checkbox to specify GitHub link"}
+                              value={b.github || ''}
+                              onChange={(e) => {
+                                const updated = [...blogs];
+                                updated[idx].github = e.target.value;
+                                setBlogs(updated);
+                              }}
+                              className="w-full bg-background border border-gray-700 disabled:opacity-40 disabled:bg-gray-900 rounded-lg p-2 text-xs font-mono"
+                            />
+                          </div>
+
+                          {/* Medium Choice */}
+                          <div className={`p-3 rounded-lg border transition-all ${b.medium ? 'bg-primary/5 border-primary/40' : 'bg-background/40 border-gray-800/80'}`}>
+                            <label className="flex items-center gap-2 cursor-pointer mb-2">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(b.medium && b.medium.trim())}
+                                onChange={(e) => {
+                                  const updated = [...blogs];
+                                  if (e.target.checked) {
+                                    updated[idx].medium = 'https://medium.com/@OxL3on';
+                                  } else {
+                                    updated[idx].medium = '';
+                                  }
+                                  setBlogs(updated);
+                                }}
+                                className="w-3.5 h-3.5 accent-primary rounded cursor-pointer"
+                              />
+                              <span className="text-[11px] font-bold text-foreground flex items-center gap-1">
+                                Medium Article Link
+                              </span>
+                            </label>
+                            <input
+                              type="text"
+                              disabled={!b.medium && b.medium !== undefined}
+                              placeholder={b.medium ? "https://medium.com/@..." : "Enable checkbox to specify Medium link"}
+                              value={b.medium || ''}
+                              onChange={(e) => {
+                                const updated = [...blogs];
+                                updated[idx].medium = e.target.value;
+                                setBlogs(updated);
+                              }}
+                              className="w-full bg-background border border-gray-700 disabled:opacity-40 disabled:bg-gray-900 rounded-lg p-2 text-xs font-mono"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Current Status Preview */}
+                        <div className="text-[10px] text-gray-400 font-medium flex items-center gap-1.5 pt-1">
+                          <span className="text-gray-500">Live preview for visitors:</span>
+                          <span className="px-2 py-0.5 rounded-full bg-gray-800/80 text-gray-300 font-mono">
+                            Website
+                          </span>
+                          {b.github && b.github.trim() && (
+                            <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 font-mono">
+                              + GitHub
+                            </span>
+                          )}
+                          {b.medium && b.medium.trim() && (
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono">
+                              + Medium
+                            </span>
+                          )}
+                          {!b.github?.trim() && !b.medium?.trim() && (
+                            <span className="text-gray-500 italic">(Website Exclusive — no external links shown)</span>
+                          )}
                         </div>
                       </div>
                       <div className="sm:col-span-3">

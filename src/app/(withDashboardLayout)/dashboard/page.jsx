@@ -8,7 +8,8 @@ export default function DashboardPage() {
     { name: "Skills", path: "/dashboard/skills", desc: "Add or edit technology groups and skills." },
     { name: "Education", path: "/dashboard/education", desc: "Manage your academic records." },
     { name: "Experience", path: "/dashboard/experience", desc: "Update your career timeline." },
-    { name: "Projects", path: "/dashboard/projects", desc: "Showcase your latest works." }
+    { name: "Projects", path: "/dashboard/projects", desc: "Showcase your latest works." },
+    { name: "Writeups & Blogs", path: "/dashboard/blogs", desc: "Manage walkthroughs, research & external links." }
   ];
 
   return (

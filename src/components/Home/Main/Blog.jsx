@@ -23,10 +23,10 @@ const defaultBlogs = [
   }
 ];
 
-const formatExternalUrl = (url, fallback = '') => {
-  if (!url || typeof url !== 'string') return fallback;
+const formatExternalUrl = (url) => {
+  if (!url || typeof url !== 'string') return '';
   const trimmed = url.trim();
-  if (!trimmed) return fallback;
+  if (!trimmed) return '';
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   return `https://${trimmed}`;
 };
@@ -78,31 +78,39 @@ const Blog = () => {
                 <div className="text-[11px] text-gray-400">
                   {post.author || "MD Leon Islam"} • {post.date} • {post.readTime}
                 </div>
-                <div className="flex items-center gap-3 text-xs pt-1">
+                <div className="flex items-center gap-3 text-xs pt-1 flex-wrap">
                   <Link
                     href={`/blog/${post.slug || 'sql-injection-modern-web-apps'}`}
                     className="text-primary hover:underline font-semibold flex items-center gap-1"
                   >
                     Read Here <ArrowRight size={11} />
                   </Link>
-                  <span className="text-gray-700">•</span>
-                  <a
-                    href={formatExternalUrl(post.github, "https://github.com/OxL3on")}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-400 hover:text-foreground font-semibold transition-colors"
-                  >
-                    Github
-                  </a>
-                  <span className="text-gray-700">•</span>
-                  <a
-                    href={formatExternalUrl(post.medium, "https://medium.com/@OxL3on")}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-400 hover:text-foreground font-semibold transition-colors"
-                  >
-                    Medium
-                  </a>
+                  {formatExternalUrl(post.github) && (
+                    <>
+                      <span className="text-gray-700">•</span>
+                      <a
+                        href={formatExternalUrl(post.github)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-400 hover:text-foreground font-semibold transition-colors"
+                      >
+                        GitHub
+                      </a>
+                    </>
+                  )}
+                  {formatExternalUrl(post.medium) && (
+                    <>
+                      <span className="text-gray-700">•</span>
+                      <a
+                        href={formatExternalUrl(post.medium)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-400 hover:text-foreground font-semibold transition-colors"
+                      >
+                        Medium
+                      </a>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

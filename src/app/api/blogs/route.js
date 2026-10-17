@@ -671,13 +671,14 @@ export async function DELETE(req) {
     const { searchParams } = new URL(req.url);
     const slug = searchParams.get('slug');
     const id = searchParams.get('id');
+    const title = searchParams.get('title');
 
-    if (!slug && !id) {
-      return NextResponse.json({ error: "Missing required query parameter: slug or id" }, { status: 400 });
+    if (!slug && !id && !title) {
+      return NextResponse.json({ error: "Missing required query parameter: slug, id, or title" }, { status: 400 });
     }
 
     const current = await getCollectionData("blogs", defaultBlogs);
-    const filtered = current.filter(b => b.slug !== slug && b.id !== id);
+    const filtered = current.filter(b => (!slug || b.slug !== slug) && (!id || b.id !== id) && (!title || b.title !== title));
     await saveCollectionData("blogs", filtered);
     return NextResponse.json({ success: true, result: filtered });
   } catch (e) {
