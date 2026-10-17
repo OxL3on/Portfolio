@@ -19,7 +19,7 @@ export default function AuthGuard({ children }) {
       try {
         const res = await fetch('/api/maininfo');
         const data = await res.json();
-        const adminEmail = data?.gmail || "prodiphore2005@gmail.com";
+        const adminEmail = data?.gmail || "leonislamofficial123@gmail.com";
         
         if (user.email === adminEmail) {
           setAuthorized(true);

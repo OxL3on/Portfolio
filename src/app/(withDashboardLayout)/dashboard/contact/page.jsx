@@ -62,11 +62,11 @@ export default function ContactPage() {
            </div>
            <div className="space-y-2">
              <label className="block text-sm font-semibold text-foreground/80 ml-1">Username / Handle</label>
-             <input type="text" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} className="w-full bg-background/60 border border-gray-700/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary" required placeholder="e.g. @prodiphore" />
+             <input type="text" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} className="w-full bg-background/60 border border-gray-700/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary" required placeholder="e.g. @OxL3on" />
            </div>
            <div className="space-y-2 md:col-span-2">
              <label className="block text-sm font-semibold text-foreground/80 ml-1">Profile Link / URL</label>
-             <input type="url" value={formData.link} onChange={e => setFormData({...formData, link: e.target.value})} className="w-full bg-background/60 border border-gray-700/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary" required placeholder="https://github.com/prodiphore" />
+             <input type="url" value={formData.link} onChange={e => setFormData({...formData, link: e.target.value})} className="w-full bg-background/60 border border-gray-700/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary" required placeholder="https://github.com/OxL3on" />
            </div>
          </div>
          <div className="flex flex-col lg:flex-row gap-4 pt-4 border-t border-gray-800">

@@ -4,7 +4,6 @@ import PageLoader from "@/components/shared/PageLoader";
 import React, { useEffect, useState } from 'react';
 import { useSharedData } from '@/hooks/useSharedData';
 import {
-  ExternalLink,
   Github,
   Code2,
   Cpu,
@@ -28,25 +27,16 @@ const ProjectCard = ({ project }) => (
       ) : (
         <span className="text-gray-600 font-mono text-xs">No Image Available</span>
       )}
-      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
         {project.github && project.github !== '#' && (
           <a
             href={project.github}
             target="_blank"
             rel="noopener noreferrer"
             className="p-3 bg-background rounded-full text-foreground hover:bg-primary hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0 duration-300"
+            title="View on GitHub"
           >
             <Github size={20} />
-          </a>
-        )}
-        {project.live && project.live !== '#' && (
-          <a
-            href={project.live}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-3 bg-background rounded-full text-foreground hover:bg-primary hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0 duration-300 delay-75"
-          >
-            <ExternalLink size={20} />
           </a>
         )}
       </div>
@@ -72,7 +62,7 @@ const ProjectCard = ({ project }) => (
         </p>
       </div>
 
-      <div className="pt-4 border-t border-gray-800/60 mt-auto">
+      <div className="pt-4 border-t border-gray-800/60 mt-auto flex items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           {(project.tags || project.tech || []).map((t, idx) => (
             <span
@@ -83,6 +73,16 @@ const ProjectCard = ({ project }) => (
             </span>
           ))}
         </div>
+        {project.github && project.github !== '#' && (
+          <a
+            href={project.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-primary font-semibold flex items-center gap-1.5 hover:underline shrink-0"
+          >
+            <Github size={13} /> Source
+          </a>
+        )}
       </div>
     </div>
   </div>
@@ -99,14 +99,40 @@ const AllProjects = () => {
     // Fallback static data if DB is empty
     return [
       {
-        title: 'Real-time Chat Engine',
-        type: 'Web App',
+        title: 'Automated Vulnerability Scanner',
+        type: 'Security Tool',
         Date: '2024',
-        image: '/projects/chat.jpg',
-        description: 'Encrypted messaging platform using Socket.io...',
-        tags: ['Next.js', 'Socket.io', 'Supabase', 'Prisma'],
-        github: 'https://github.com/prodiphore/chat-app',
-        live: 'https://chat-live.com',
+        image: '',
+        description: 'A multi-threaded vulnerability scanner designed to detect web application misconfigurations, unpatched CVEs, and OWASP Top 10 vulnerabilities.',
+        tags: ['Python', 'Socket', 'BeautifulSoup', 'CVE Detection', 'Security'],
+        github: 'https://github.com/OxL3on',
+      },
+      {
+        title: 'Network Recon & Port Scanner',
+        type: 'Network Security',
+        Date: '2024',
+        image: '',
+        description: 'High-performance network reconnaissance tool with asynchronous service enumeration, TCP/UDP port scanning, and banner grabbing.',
+        tags: ['Python', 'Networking', 'TCP/IP', 'Scapy', 'Nmap Engine'],
+        github: 'https://github.com/OxL3on',
+      },
+      {
+        title: 'JWT Flaw Exploiter & Analyzer',
+        type: 'Web Security',
+        Date: '2023',
+        image: '',
+        description: 'Automated security testing script for JSON Web Tokens, testing for signature strip bypasses, algorithm confusion, and brute-forcing weak keys.',
+        tags: ['Python', 'Cryptography', 'JWT', 'REST API', 'Offensive Sec'],
+        github: 'https://github.com/OxL3on',
+      },
+      {
+        title: 'Subdomain & Attack Surface Enumerator',
+        type: 'Bug Bounty Tool',
+        Date: '2023',
+        image: '',
+        description: 'Fast asynchronous OSINT reconnaissance script aggregating Certificate Transparency logs and passive DNS records to uncover target attack surfaces.',
+        tags: ['Bash', 'Python', 'OSINT', 'Bug Bounty', 'Automation'],
+        github: 'https://github.com/OxL3on',
       }
     ];
   });

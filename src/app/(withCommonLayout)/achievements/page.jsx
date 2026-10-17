@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import PageLoader from '@/components/shared/PageLoader';
 import { useSharedData } from '@/hooks/useSharedData';
-import { ChevronLeft, ChevronRight, Trophy, Medal, Star, Shield } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Medal, Star, Shield } from 'lucide-react';
 
 const itemsPerPage = 6;
 
@@ -27,25 +27,46 @@ const AchievementCard = ({ item }) => (
       </div>
     </div>
 
-    <h3 className="text-xl font-bold text-gray-100 mb-6 group-hover:text-primary transition-colors line-clamp-2 grow">
+    <h3 className="text-xl font-bold text-gray-100 group-hover:text-primary transition-colors line-clamp-2">
       {item.title}
     </h3>
-
-    <div className="flex justify-between items-end pt-5 border-t border-gray-800/60 mt-auto">
-      <div>
-        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">
-          Result
-        </p>
-        <p className="text-base text-gray-200 font-semibold bg-gray-800/30 px-3 py-1 rounded-lg">
-          {item.result}
-        </p>
-      </div>
-      <button className="bg-gray-800 hover:bg-primary hover:text-white text-gray-300 px-5 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-2 group-hover:shadow-[0_0_15px_rgba(var(--primary-color),0.3)]">
-        <Trophy size={14} /> Details
-      </button>
-    </div>
   </div>
 );
+
+const defaultAchievements = [
+  {
+    title: "National Cyber Drill 2024",
+    type: "CTF / Cyber Drill",
+    date: "Dec 2024",
+    rank: "Top 10",
+    result: "Finalist",
+    description: "Participated in national level cyber defense drill testing vulnerability assessment, incident response, and forensic capabilities."
+  },
+  {
+    title: "PSTU Intra University CTF",
+    type: "Jeopardy CTF",
+    date: "Oct 2024",
+    rank: "1st Place",
+    result: "Champion",
+    description: "Secured 1st position solving web exploitation, reverse engineering, cryptography, and network forensics challenges."
+  },
+  {
+    title: "Hack The Box University CTF",
+    type: "Global CTF",
+    date: "2024",
+    rank: "Top 5%",
+    result: "Qualified",
+    description: "Competed globally against collegiate cybersecurity teams solving complex offensive security challenges."
+  },
+  {
+    title: "Inter-University Cyber Security Hackathon",
+    type: "Hackathon",
+    date: "2023",
+    rank: "Top 15",
+    result: "Special Mention",
+    description: "Developed and presented an automated web application vulnerability scanning tool."
+  }
+];
 
 const AllAchievements = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,7 +74,7 @@ const AllAchievements = () => {
     const res = await fetch('/api/achievements');
     return await res.json();
   });
-  const achievements = achievementsData || [];
+  const achievements = (achievementsData && achievementsData.length > 0) ? achievementsData : defaultAchievements;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;

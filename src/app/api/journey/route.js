@@ -3,6 +3,9 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
     try {
+        if (!clientPromise) {
+            return NextResponse.json([]);
+        }
         const client = await clientPromise;
         const db = client.db("portfolio_db");
 
@@ -11,8 +14,7 @@ export async function GET() {
 
         return NextResponse.json(journey.length > 0 ? journey : []);
     } catch (e) {
-        console.error("GET Journey API Error:", e);
-        return NextResponse.json({ error: "Failed to fetch journey data" }, { status: 500 });
+        return NextResponse.json([]);
     }
 }
 

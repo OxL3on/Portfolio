@@ -13,8 +13,13 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSharedData } from '@/hooks/useSharedData';
 
 const Navbar = () => {
+  const { data: mainInfo } = useSharedData('mainInfo', async () => {
+    const res = await fetch('/api/maininfo');
+    return res.json();
+  });
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -29,6 +34,9 @@ const Navbar = () => {
     { name: 'Home', path: '/' },
     { name: 'About', path: '/about' },
     { name: 'Projects', path: '/projects' },
+    { name: 'Blog', path: '/blog' },
+    { name: 'Certifications', path: '/certifications' },
+    { name: 'Achievements', path: '/achievements' },
     { name: 'Contact', path: '/contact' },
   ];
 
@@ -89,22 +97,23 @@ const Navbar = () => {
 
           <Link
             href="/"
-            className="flex items-center gap-2 font-bold cursor-pointer group"
+            className="flex items-center gap-2.5 font-bold cursor-pointer group"
             style={{ color: 'var(--primary-color)' }}
           >
-            <div
-              className="p-1.5 rounded-lg transition-transform group-hover:scale-110"
-              style={{ backgroundColor: `hsla(${hue}, 100%, 65%, 0.1)` }}
-            >
-              <Home size={18} />
+            <div className="w-7 h-7 rounded-lg overflow-hidden border border-primary/20 transition-transform group-hover:scale-110 flex items-center justify-center bg-black/80 shrink-0">
+              <img 
+                src={mainInfo?.logoImage || "/logo.png"} 
+                alt="Leon Logo" 
+                className="w-full h-full object-contain p-0.5" 
+              />
             </div>
-            <span className="text-[15px] tracking-tight text-foreground">
-              Prodip Hore
+            <span className="text-[15px] tracking-tight text-foreground font-bold">
+              {mainInfo?.siteTitle || "LEON"}
             </span>
           </Link>
         </div>
 
-        <div className="hidden md:flex items-center gap-8 text-[14px] font-medium">
+        <div className="hidden md:flex items-center gap-4 lg:gap-7 text-[13px] lg:text-[14px] font-medium">
           {navLinks.map((link) => {
             const isActive = pathname === link.path;
             return (

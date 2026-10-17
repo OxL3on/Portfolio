@@ -15,7 +15,7 @@ export default function LoginPage() {
         try {
           const res = await fetch('/api/maininfo');
           const data = await res.json();
-          const adminEmail = data?.gmail || "prodiphore2005@gmail.com";
+          const adminEmail = data?.gmail || "leonislamofficial123@gmail.com";
           if (user.email === adminEmail) {
             router.push('/dashboard');
           } else {
@@ -38,7 +38,7 @@ export default function LoginPage() {
       // Verify if the user is the admin
       const res = await fetch('/api/maininfo');
       const data = await res.json();
-      const adminEmail = data?.gmail || "prodiphore2005@gmail.com";
+      const adminEmail = data?.gmail || "leonislamofficial123@gmail.com";
 
       if (user.email === adminEmail) {
         // Success

@@ -1,79 +1,52 @@
-import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
+import { getCollectionData, saveCollectionData } from "@/lib/db";
+
+const defaultMainInfo = {
+    name: "MD Leon Islam",
+    siteTitle: "LEON",
+    tagline: "CYBERSECURITY & OFFENSIVE SECURITY ENTHUSIAST",
+    greeting: "Hi, I'm MD Leon Islam.",
+    image: "/profile.jpg",
+    coverImage: "/china-mountains.jpg",
+    logoImage: "/logo.png",
+    description: "I'm Md Leon Islam, a Computer Science and Engineering student at Patuakhali Science and Technology University (PSTU) (currently in my 5th semester), passionate about cybersecurity, penetration testing, and offensive security. My interests include web application security, network security, vulnerability assessment, and bug bounty hunting.",
+    bio: "CSE student at PSTU and Offensive Security enthusiast",
+    gmail: "leonislamofficial123@gmail.com",
+    role: "Cybersecurity Student",
+    location: "Patuakhali / Barishal, Bangladesh",
+    status: "Available for Opportunities",
+    github: "OxL3on",
+    roles: [
+      "Penetration Tester",
+      "CTF Player",
+      "Network Security",
+      "Bug Bounty Hunter",
+      "Offensive Security Enthusiast"
+    ]
+};
 
 export async function GET() {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-
-        // "mainInfo" কালেকশন থেকে ডাটা রিড করবে
-        const info = await db.collection("mainInfo").findOne({});
-
-        return NextResponse.json(info || { message: "No info found" });
+        const info = await getCollectionData("mainInfo", defaultMainInfo);
+        return NextResponse.json(info || defaultMainInfo);
     } catch (e) {
-        return NextResponse.json({ error: "Failed to fetch main info" }, { status: 500 });
+        return NextResponse.json(defaultMainInfo);
     }
 }
 
 export async function POST(req) {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
         const body = await req.json();
-
-        const result = await db.collection("mainInfo").updateOne(
-            {},
-            {
-                $set: {
-                    name: body.name,
-                    image: body.image,
-                    description: body.description,
-                    resume: body.resume,
-                    roadmap: body.roadmap,
-                    gmail: body.gmail || "prodiphore2005@gmail.com",
-                    updatedAt: new Date()
-                }
-            },
-            { upsert: true }
-        );
-
-        return NextResponse.json({ success: true, result });
+        const current = await getCollectionData("mainInfo", defaultMainInfo);
+        const updated = {
+            ...current,
+            ...body,
+            updatedAt: new Date()
+        };
+        await saveCollectionData("mainInfo", updated);
+        return NextResponse.json({ success: true, result: updated });
     } catch (e) {
-        console.error("POST API Error:", e);
+        console.error("POST MainInfo Error:", e);
         return NextResponse.json({ error: "Failed to update main info", details: e.message }, { status: 500 });
-    }
-}
-
-export async function PUT(req) {
-    try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-        const body = await req.json();
-
-        // শুধুমাত্র বডিতে আসা ডেটা আপডেট করবে
-        const result = await db.collection("mainInfo").updateOne(
-            {},
-            { $set: { ...body, updatedAt: new Date() } }
-        );
-
-        return NextResponse.json({ success: true, result });
-    } catch (e) {
-        console.error("PUT API Error:", e);
-        return NextResponse.json({ error: "Failed to update main info", details: e.message }, { status: 500 });
-    }
-}
-
-export async function DELETE() {
-    try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-
-        // পুরো ডকুমেন্ট মুছে ফেলবে
-        const result = await db.collection("mainInfo").deleteOne({});
-
-        return NextResponse.json({ success: true, result });
-    } catch (e) {
-        console.error("DELETE API Error:", e);
-        return NextResponse.json({ error: "Failed to delete main info", details: e.message }, { status: 500 });
     }
 }

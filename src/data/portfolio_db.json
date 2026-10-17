@@ -1,0 +1,255 @@
+{
+  "adminSettings": {
+    "passcode": "MyNameIsLeon123##",
+    "adminEmail": "leonislamofficial123@gmail.com"
+  },
+  "mainInfo": {
+    "name": "MD Leon Islam",
+    "siteTitle": "LEON",
+    "tagline": "CYBERSECURITY & OFFENSIVE SECURITY ENTHUSIAST",
+    "greeting": "Hi, I'm MD Leon Islam.",
+    "description": "I'm Md Leon Islam, a Computer Science and Engineering student at Patuakhali Science and Technology University (PSTU) (currently in my 5th semester), passionate about cybersecurity, penetration testing, and offensive security. My interests include web application security, network security, vulnerability assessment, and bug bounty hunting.",
+    "bio": "CSE student at PSTU and Offensive Security enthusiast",
+    "gmail": "leonislamofficial123@gmail.com",
+    "phone": "+880 1XXXXXXXXX",
+    "role": "Cybersecurity Student",
+    "location": "Patuakhali / Barishal, Bangladesh",
+    "status": "Available for Opportunities",
+    "github": "OxL3on",
+    "image": "/profile.jpg",
+    "coverImage": "/china-mountains.jpg",
+    "logoImage": "/logo.png",
+    "roles": [
+      "Penetration Tester",
+      "CTF Player",
+      "Network Security",
+      "Bug Bounty Hunter",
+      "Offensive Security Enthusiast"
+    ],
+    "updatedAt": "2026-10-17T11:39:28.829Z"
+  },
+  "education": [
+    {
+      "id": "edu-1",
+      "degree": "Bachelor of Science in Computer Science and Engineering",
+      "institution": "Patuakhali Science and Technology University (PSTU)",
+      "period": "2023 - Present",
+      "major": "Computer Science & Engineering (5th Semester)"
+    },
+    {
+      "id": "edu-2",
+      "degree": "Higher Secondary Certificate (HSC)",
+      "institution": "Government Syed Hatem Ali College, Barishal",
+      "period": "2021 - 2023",
+      "major": "Science"
+    }
+  ],
+  "skills": [
+    {
+      "id": "skill-1",
+      "title": "Offensive Security & Pentesting",
+      "skills": [
+        "Burp Suite",
+        "Nmap",
+        "Metasploit",
+        "Wireshark",
+        "SQLmap",
+        "OWASP ZAP",
+        "Hydra",
+        "John the Ripper"
+      ]
+    },
+    {
+      "id": "skill-2",
+      "title": "Web Application & API Security",
+      "skills": [
+        "OWASP Top 10",
+        "Vulnerability Assessment",
+        "API Pentesting",
+        "ffuf",
+        "Sublist3r",
+        "JWT Exploitation",
+        "XSS & SQLi"
+      ]
+    },
+    {
+      "id": "skill-3",
+      "title": "Networking & Security Systems",
+      "skills": [
+        "Kali Linux",
+        "TCP/IP & Subnetting",
+        "Packet Analysis",
+        "Firewalls",
+        "IDS / IPS",
+        "Network Forensics",
+        "Linux Hardening"
+      ]
+    },
+    {
+      "id": "skill-4",
+      "title": "Programming & Tooling",
+      "skills": [
+        "Python",
+        "C / C++",
+        "Bash Scripting",
+        "JavaScript",
+        "SQL",
+        "Git / GitHub",
+        "Docker",
+        "Regular Expressions"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-1792237013610",
+      "title": "New Security Project",
+      "type": "Security Tool",
+      "date": "2024",
+      "description": "Project description here...",
+      "tags": [
+        "Python",
+        "Security"
+      ],
+      "github": "https://github.com/OxL3on"
+    },
+    {
+      "id": "proj-1",
+      "title": "Automated Vulnerability Scanner",
+      "type": "Security Tool",
+      "date": "2024",
+      "description": "THis is a example project",
+      "tags": [
+        "Python",
+        "Socket",
+        "BeautifulSoup",
+        "CVE Detection",
+        "Security"
+      ],
+      "github": "https://github.com/OxL3on"
+    },
+    {
+      "id": "proj-2",
+      "title": "Network Recon & Port Scanner",
+      "type": "Network Security",
+      "date": "2024",
+      "description": "High-performance network reconnaissance tool with asynchronous service enumeration, TCP/UDP port scanning, and banner grabbing.",
+      "tags": [
+        "Python",
+        "Networking",
+        "TCP/IP",
+        "Scapy",
+        "Nmap Engine"
+      ],
+      "github": "https://github.com/OxL3on"
+    },
+    {
+      "id": "proj-4",
+      "title": "Subdomain & Attack Surface Enumerator",
+      "type": "Bug Bounty Tool",
+      "date": "2023",
+      "description": "Fast asynchronous OSINT reconnaissance script aggregating Certificate Transparency logs and passive DNS records to uncover target attack surfaces.",
+      "tags": [
+        "Bash",
+        "Python",
+        "OSINT",
+        "Bug Bounty",
+        "Automation"
+      ],
+      "github": "https://github.com/OxL3on"
+    }
+  ],
+  "certifications": [
+    {
+      "id": "cert-1",
+      "title": "eLearnSecurity Junior Penetration Tester (eJPT)",
+      "issuer": "INE Security",
+      "issueDate": "2024",
+      "credentialId": "INE-EJPT-849201",
+      "verifyUrl": "https://ine.com"
+    },
+    {
+      "id": "cert-2",
+      "title": "CompTIA Security+",
+      "issuer": "CompTIA",
+      "issueDate": "2024",
+      "credentialId": "COMP001029482",
+      "verifyUrl": "https://www.comptia.org"
+    },
+    {
+      "id": "cert-3",
+      "title": "Certified Ethical Hacker (CEH Practical)",
+      "issuer": "EC-Council",
+      "issueDate": "2024",
+      "credentialId": "ECC-CEHP-19283",
+      "verifyUrl": "https://www.eccouncil.org"
+    },
+    {
+      "id": "cert-4",
+      "title": "TryHackMe Pre-Security & Offensive Pentesting",
+      "issuer": "TryHackMe",
+      "issueDate": "2023",
+      "credentialId": "THM-CERT-294819",
+      "verifyUrl": "https://tryhackme.com"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "ach-1",
+      "title": "Top 1% Rank on TryHackMe",
+      "subtitle": "Global Cybersecurity Platform",
+      "date": "2024",
+      "category": "CTF & Pentesting",
+      "metric": "Top 1%",
+      "badge": "Ranked #1 in University",
+      "description": "Solved 80+ vulnerable machines and challenges covering Linux privilege escalation, Active Directory exploitation, and web application security."
+    },
+    {
+      "id": "ach-2",
+      "title": "National Cyber Drill 2024 Finalist",
+      "subtitle": "BGD e-GOV CIRT",
+      "date": "2024",
+      "category": "Competition",
+      "metric": "Finalist",
+      "badge": "National Level",
+      "description": "Participated in national level cyber incident handling, digital forensics, threat hunting, and defensive security simulation exercises."
+    },
+    {
+      "id": "ach-3",
+      "title": "BUP CTF 2025",
+      "subtitle": "Patuakhali Science and Technology University",
+      "date": "2023",
+      "category": "Inter-University CTF",
+      "metric": "1st Place",
+      "badge": "Champion",
+      "description": "pstu",
+      "rank": "10th "
+    }
+  ],
+  "contact": [
+    {
+      "name": "github",
+      "link": "https://github.com/OxL3on"
+    },
+    {
+      "name": "linkedin",
+      "link": "https://www.linkedin.com/in/mdleonislam/"
+    },
+    {
+      "name": "discord",
+      "link": "https://discord.com/users/luffy_111000"
+    },
+    {
+      "name": "tryhackme",
+      "link": "https://tryhackme.com/p/0xLuffy"
+    },
+    {
+      "name": "hackthebox",
+      "link": "https://profile.hackthebox.com/profile/019f1cc7-bc25-7304-90c6-3bf847f0f994?utm_medium=copy_url"
+    },
+    {
+      "name": "medium",
+      "link": "https://medium.com/@OxL3on"
+    }
+  ]
+}

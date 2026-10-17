@@ -1,38 +1,56 @@
-import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
+import { getCollectionData, saveCollectionData } from "@/lib/db";
+
+const defaultSkills = [
+    {
+        id: "skill-1",
+        title: "Offensive Security & Pentesting",
+        skills: ["Burp Suite", "Nmap", "Metasploit", "Wireshark", "SQLmap", "OWASP ZAP", "Hydra", "John the Ripper"]
+    },
+    {
+        id: "skill-2",
+        title: "Web Application & API Security",
+        skills: ["OWASP Top 10", "Vulnerability Assessment", "API Pentesting", "ffuf", "Sublist3r", "JWT Exploitation", "XSS & SQLi"]
+    },
+    {
+        id: "skill-3",
+        title: "Networking & Security Systems",
+        skills: ["Kali Linux", "TCP/IP & Subnetting", "Packet Analysis", "Firewalls", "IDS / IPS", "Network Forensics", "Linux Hardening"]
+    },
+    {
+        id: "skill-4",
+        title: "Programming & Tooling",
+        skills: ["Python", "C / C++", "Bash Scripting", "JavaScript", "SQL", "Git / GitHub", "Docker", "Regular Expressions"]
+    }
+];
 
 export async function GET() {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-
-        // "skills" কালেকশন থেকে ডাটা রিড করবে
-        const skills = await db.collection("skills").find({}).toArray();
-
-        return NextResponse.json(skills.length > 0 ? skills : []);
+        const skills = await getCollectionData("skills", defaultSkills);
+        return NextResponse.json(skills.length > 0 ? skills : defaultSkills);
     } catch (e) {
-        console.error("GET Skills API Error:", e);
-        return NextResponse.json({ error: "Failed to fetch skills" }, { status: 500 });
+        return NextResponse.json(defaultSkills);
     }
 }
 
 export async function POST(req) {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
         const body = await req.json();
+        const current = await getCollectionData("skills", defaultSkills);
 
-        // যদি ডাটা array হয় (সব স্কিল ক্যাটেগরি একসাথে আপডেট করতে চাইলে)
+        let updatedList = [];
         if (Array.isArray(body)) {
-            await db.collection("skills").deleteMany({}); // আগের ডাটা ক্লিয়ার
-            const result = await db.collection("skills").insertMany(body); // নতুন ডাটা ইনসার্ট
-            return NextResponse.json({ success: true, result });
+            updatedList = body;
+        } else {
+            const newItem = {
+                id: body.id || `skill-${Date.now()}`,
+                ...body
+            };
+            updatedList = [...current, newItem];
         }
 
-        // যদি সিঙ্গেল অবজেক্ট পাঠায়
-        const result = await db.collection("skills").insertOne(body);
-
-        return NextResponse.json({ success: true, result });
+        await saveCollectionData("skills", updatedList);
+        return NextResponse.json({ success: true, result: updatedList });
     } catch (e) {
         console.error("POST Skills API Error:", e);
         return NextResponse.json({ error: "Failed to update skills", details: e.message }, { status: 500 });
@@ -41,46 +59,34 @@ export async function POST(req) {
 
 export async function PUT(req) {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
         const body = await req.json();
+        const current = await getCollectionData("skills", defaultSkills);
+        const index = current.findIndex(s => s.id === body.id || s.title === body.title);
 
-        if (!body.title) {
-            return NextResponse.json({ error: "Title is required to update a skill category" }, { status: 400 });
+        if (index >= 0) {
+            current[index] = { ...current[index], ...body };
+        } else {
+            current.push(body);
         }
 
-        // title এর উপর ভিত্তি করে skills অ্যারে আপডেট করবে
-        const result = await db.collection("skills").updateOne(
-            { title: body.title },
-            { $set: { skills: body.skills } }
-        );
-
-        return NextResponse.json({ success: true, result });
+        await saveCollectionData("skills", current);
+        return NextResponse.json({ success: true, result: current });
     } catch (e) {
-        console.error("PUT Skills API Error:", e);
-        return NextResponse.json({ error: "Failed to update skills", details: e.message }, { status: 500 });
+        return NextResponse.json({ error: "Failed to edit skills" }, { status: 500 });
     }
 }
 
 export async function DELETE(req) {
     try {
-        const client = await clientPromise;
-        const db = client.db("portfolio_db");
-
         const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
         const title = searchParams.get('title');
+        const current = await getCollectionData("skills", defaultSkills);
 
-        if (title) {
-            // যদি টাইটেল দেওয়া থাকে (যেমন: /api/skills?title=Frontend), তাহলে শুধু ওই স্কিল ক্যাটাগরি ডিলিট করবে
-            const result = await db.collection("skills").deleteOne({ title });
-            return NextResponse.json({ success: true, result });
-        } else {
-            // যদি টাইটেল না থাকে, তাহলে সব ডেটা ক্লিয়ার করে ফেলবে
-            const result = await db.collection("skills").deleteMany({});
-            return NextResponse.json({ success: true, result });
-        }
+        const filtered = current.filter(s => s.id !== id && s.title !== title);
+        await saveCollectionData("skills", filtered);
+        return NextResponse.json({ success: true, result: filtered });
     } catch (e) {
-        console.error("DELETE Skills API Error:", e);
-        return NextResponse.json({ error: "Failed to delete skills", details: e.message }, { status: 500 });
+        return NextResponse.json({ error: "Failed to delete skill category" }, { status: 500 });
     }
 }

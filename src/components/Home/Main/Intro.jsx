@@ -13,24 +13,30 @@ const Intro = () => {
   if (isLoading) { return <div className="flex justify-center items-center py-10 w-full bg-card/90 backdrop-blur-md rounded-3xl border border-gray-800 shadow-lg min-h-[400px]"><PageLoader /></div>; }
 
   // Helper arrays for dynamic titles based on user preferences in future
-  const defaultTitles = ["MERN Stack Developer", "Competitive Programmer", "ML Enthusiast"];
+  const defaultTitles = [
+    "Penetration Tester",
+    "CTF Player",
+    "Network Security",
+    "Bug Bounty Hunter",
+    "Offensive Security Enthusiast"
+  ];
 
   return (
-    <section className="bg-card/90 backdrop-blur-md p-8 rounded-3xl border border-gray-800 shadow-2xl transition-colors duration-300">
+    <section className="bg-card/90 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-gray-800 shadow-2xl transition-colors duration-300">
       <span className="text-primary text-xs font-bold uppercase tracking-widest">
-        MERN Stack Developer & Competitive Programmer
+        {mainInfo?.tagline || "CYBERSECURITY & OFFENSIVE SECURITY ENTHUSIAST"}
       </span>
 
-      <h1 className="text-4xl font-bold text-foreground mt-4">
-        Hi, I&apos;m {mainInfo?.name || "Prodip Hore"}.
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mt-3 sm:mt-4">
+        {mainInfo?.greeting || `Hi, I'm ${mainInfo?.name || "MD Leon Islam"}.`}
       </h1>
 
       <p className="text-gray-400 mt-6 leading-relaxed whitespace-pre-line">
-        {mainInfo?.description || "A passionate MERN Stack Developer. Currently building robust web applications and learning new technologies."}
+        {mainInfo?.description || "I'm Md Leon Islam, a Computer Science and Engineering student at Patuakhali Science and Technology University (PSTU) (currently in my 5th semester), passionate about cybersecurity, penetration testing, and offensive security. My interests include web application security, network security, vulnerability assessment, and bug bounty hunting."}
       </p>
 
       <div className="flex flex-wrap gap-3 mt-6">
-        {defaultTitles.map((title, idx) => (
+        {(mainInfo?.roles && mainInfo.roles.length > 0 ? mainInfo.roles : defaultTitles).map((title, idx) => (
           <span key={idx} className="px-3 py-1 bg-background text-gray-400 text-xs rounded-lg border border-gray-700">
             {title}
           </span>

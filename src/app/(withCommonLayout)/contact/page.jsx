@@ -32,7 +32,7 @@ const ContactPage = () => {
             Let&apos;s connect and <br /> collaborate together.
           </h1>
           <p className="text-foreground/80 leading-relaxed max-w-2xl text-[15px]">
-            I&apos;m always open to discussing web development, network engineering, open-source projects, and new technologies. Reach out through any of these channels below!
+            I&apos;m always open to discussing web application security, penetration testing, offensive security, and collaborative projects. Reach out through any of these channels below!
           </p>
         </div>
 
@@ -50,9 +50,9 @@ const ContactPage = () => {
                 <ContactItem
                   iconName="mail"
                   label="Primary Email"
-                  value="prodiphore@gmail.com"
+                  value="leonislamofficial123@gmail.com"
                   subValue="Best for collaboration inquiries"
-                  href="mailto:prodiphore@gmail.com"
+                  href="mailto:leonislamofficial123@gmail.com"
                   isPrimary={true}
                 />
               </div>

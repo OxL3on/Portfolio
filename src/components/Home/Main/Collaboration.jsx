@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 const Collaboration = () => {
-  const [githubLink, setGithubLink] = useState('https://github.com/prodip2005');
+  const [githubLink, setGithubLink] = useState('https://github.com/OxL3on');
 
   useEffect(() => {
     const fetchContacts = async () => {
@@ -11,7 +11,7 @@ const Collaboration = () => {
         const response = await fetch('/api/contact');
         if (response.ok) {
           const data = await response.json();
-          const gh = data.find(item => item.name.toLowerCase().includes('github'));
+          const gh = data.find(item => item.name?.toLowerCase().includes('github'));
           if (gh && gh.link) {
             setGithubLink(gh.link);
           }
@@ -25,16 +25,16 @@ const Collaboration = () => {
 
   return (
     <div className="mt-8 space-y-8">
-      <section className="bg-card/90 backdrop-blur-md p-8 rounded-3xl border border-gray-800 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6 transition-all duration-300">
+      <section className="bg-card/90 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-gray-800 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-all duration-300">
         <div>
           <span className="text-primary text-[10px] font-bold uppercase tracking-[0.2em]">
-            Collaboration
+            COLLABORATION
           </span>
           <h2 className="text-2xl font-bold text-foreground mt-1">
-            Let's build together
+            Let's build something meaningful.
           </h2>
           <p className="text-gray-500 text-sm mt-1">
-            I'm always open to collaborating on exciting projects.
+            I'm always interested in learning, collaborating on technical projects, and exploring cybersecurity.
           </p>
         </div>
 
