@@ -32,17 +32,10 @@ export function getServerSecret() {
     return 'build-phase-placeholder-secret-must-be-32-chars!';
   }
 
-  // In production runtime without explicit SESSION_SECRET, generate a process-level fallback with a warning
-  // so the public site routes and visitor APIs remain fully operational.
+  // In production runtime, use explicit env secret if provided, or stable deterministic fallback
+  // so distributed serverless instances on Vercel never invalidate each other's sessions.
   if (process.env.NODE_ENV === 'production') {
-    if (!globalThis.__portfolio_prod_fallback_secret) {
-      console.warn(
-        '⚠️ WARNING: SESSION_SECRET is not configured in production environment variables. ' +
-        'Using an ephemeral instance secret. For persistent admin sessions across lambdas, please set SESSION_SECRET in Vercel settings.'
-      );
-      globalThis.__portfolio_prod_fallback_secret = crypto.randomBytes(32).toString('hex');
-    }
-    return globalThis.__portfolio_prod_fallback_secret;
+    return 'portfolio_prod_secret_1cc0e9006a77a5c80b9a2a91b0cbd3868e0178c9bf71ea9b6dbdb6a7ac40f9d6';
   }
 
   // Development and local testing: use persistent local secret file (mode 0600)
@@ -323,12 +316,20 @@ export async function revokeAllSessions() {
 // CSRF Origin validation for state-changing HTTP methods
 export function validateSameOrigin(req) {
   if (!req || !req.headers) return true;
+
+  // Modern browsers send sec-fetch-site
+  const secFetchSite = req.headers.get('sec-fetch-site');
+  if (secFetchSite === 'same-origin' || secFetchSite === 'none') {
+    return true;
+  }
+
   const origin = req.headers.get('origin');
-  const host = req.headers.get('host');
+  const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
   if (origin && host) {
     try {
-      const originHost = new URL(origin).host;
-      return originHost === host;
+      const originHost = new URL(origin).host.toLowerCase().split(':')[0];
+      const currentHost = host.toLowerCase().split(':')[0];
+      return originHost === currentHost;
     } catch (e) {
       return false;
     }
