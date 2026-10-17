@@ -8,7 +8,11 @@ import clientPromise from '@/lib/mongodb';
 // ==========================================
 const SECRET_FILE = path.join(process.cwd(), 'src/data/.session_secret');
 
-function getServerSecret() {
+let cachedSecret = null;
+
+export function getServerSecret() {
+  if (cachedSecret) return cachedSecret;
+
   const envSecret = process.env.SESSION_SECRET || process.env.ADMIN_SESSION_SECRET;
   if (envSecret) {
     if (envSecret.length < 32) {
@@ -18,29 +22,44 @@ function getServerSecret() {
       }
       console.error(msg);
     } else {
-      return envSecret;
+      cachedSecret = envSecret;
+      return cachedSecret;
     }
   }
 
-  // In production, an explicit, distributed SESSION_SECRET is strictly required
+  // Next.js build / data collection phase: never fail the build for secrets
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    return 'build-phase-placeholder-secret-must-be-32-chars!';
+  }
+
+  // In production runtime without explicit SESSION_SECRET, generate a process-level fallback with a warning
+  // so the public site routes and visitor APIs remain fully operational.
   if (process.env.NODE_ENV === 'production') {
-    throw new Error(
-      'FATAL CONFIGURATION ERROR: SESSION_SECRET environment variable is missing in production. ' +
-      'A persistent secret of at least 32 characters must be provided across all application instances.'
-    );
+    if (!globalThis.__portfolio_prod_fallback_secret) {
+      console.warn(
+        '⚠️ WARNING: SESSION_SECRET is not configured in production environment variables. ' +
+        'Using an ephemeral instance secret. For persistent admin sessions across lambdas, please set SESSION_SECRET in Vercel settings.'
+      );
+      globalThis.__portfolio_prod_fallback_secret = crypto.randomBytes(32).toString('hex');
+    }
+    return globalThis.__portfolio_prod_fallback_secret;
   }
 
   // Development and local testing: use persistent local secret file (mode 0600)
   try {
     if (fs.existsSync(SECRET_FILE)) {
       const existing = fs.readFileSync(SECRET_FILE, 'utf-8').trim();
-      if (existing.length >= 32) return existing;
+      if (existing.length >= 32) {
+        cachedSecret = existing;
+        return cachedSecret;
+      }
     }
     const newSecret = crypto.randomBytes(32).toString('hex');
     const dir = path.dirname(SECRET_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(SECRET_FILE, newSecret, { mode: 0o600 });
-    return newSecret;
+    cachedSecret = newSecret;
+    return cachedSecret;
   } catch (err) {
     // In restricted test environments, preserve a single secret per Node process
     if (!globalThis.__portfolio_dev_secret) {
@@ -49,8 +68,6 @@ function getServerSecret() {
     return globalThis.__portfolio_dev_secret;
   }
 }
-
-const SERVER_SECRET = getServerSecret();
 
 // ==========================================
 // 2. PASSWORD HASHING (scrypt + salt)
@@ -142,7 +159,7 @@ export function createAdminSession(adminUser = { name: 'MD Leon Islam', role: 'A
   const timestamp = Date.now();
   const expiresAt = timestamp + (24 * 60 * 60 * 1000); // 24 hours
   const payload = `${tokenId}.${expiresAt}`;
-  const signature = crypto.createHmac('sha256', SERVER_SECRET).update(payload).digest('hex');
+  const signature = crypto.createHmac('sha256', getServerSecret()).update(payload).digest('hex');
   const signedToken = `${payload}.${signature}`;
 
   const sessionData = {
@@ -213,7 +230,7 @@ export async function validateAdminSession(req) {
 
     // Verify HMAC signature with timing-safe comparison
     const payload = `${tokenId}.${expiresAtStr}`;
-    const expectedSignature = crypto.createHmac('sha256', SERVER_SECRET).update(payload).digest('hex');
+    const expectedSignature = crypto.createHmac('sha256', getServerSecret()).update(payload).digest('hex');
 
     const sigBuf = Buffer.from(signature);
     const expectedBuf = Buffer.from(expectedSignature);
