@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCollectionData, saveCollectionData } from "@/lib/db";
+import { validateAdminSession } from "@/lib/auth";
 
 export const defaultBlogs = [
   // --- TryHackMe Writeups ---
@@ -608,6 +609,11 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
+    const session = validateAdminSession(req);
+    if (!session.isValid) {
+      return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
+    }
+
     const body = await req.json();
     const current = await getCollectionData("blogs", defaultBlogs);
 
@@ -633,6 +639,11 @@ export async function POST(req) {
 
 export async function PUT(req) {
   try {
+    const session = validateAdminSession(req);
+    if (!session.isValid) {
+      return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
+    }
+
     const body = await req.json();
     const current = await getCollectionData("blogs", defaultBlogs);
     const index = current.findIndex(b => b.slug === body.slug || b.id === body.id);
@@ -652,11 +663,20 @@ export async function PUT(req) {
 
 export async function DELETE(req) {
   try {
+    const session = validateAdminSession(req);
+    if (!session.isValid) {
+      return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const slug = searchParams.get('slug');
     const id = searchParams.get('id');
-    const current = await getCollectionData("blogs", defaultBlogs);
 
+    if (!slug && !id) {
+      return NextResponse.json({ error: "Missing required query parameter: slug or id" }, { status: 400 });
+    }
+
+    const current = await getCollectionData("blogs", defaultBlogs);
     const filtered = current.filter(b => b.slug !== slug && b.id !== id);
     await saveCollectionData("blogs", filtered);
     return NextResponse.json({ success: true, result: filtered });

@@ -89,7 +89,8 @@ const SideContact = () => {
         {isLoading ? (<div className='flex justify-center items-center py-10 w-full'><PageLoader /></div>) : (
           <div className="grid gap-2">
             {socialLinks.map((social, index) => {
-              const hasLink = social.link && social.link.trim() !== '' && social.link !== '#';
+              const isSafe = social.link && /^(https?:\/\/|mailto:)/i.test(social.link.trim());
+              const hasLink = isSafe && social.link.trim() !== '' && social.link !== '#';
               return (
                 <a
                   key={index}

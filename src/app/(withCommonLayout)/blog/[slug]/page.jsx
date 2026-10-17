@@ -547,11 +547,12 @@ export default function BlogPostPage() {
                 return <CodeBlock className={className}>{children}</CodeBlock>;
               },
               img({ src, alt }) {
+                const safeSrc = src && /^(https?:\/\/|\/|data:image\/(png|jpe?g|webp|gif);base64,)/i.test(src.trim()) ? src : '/profile.jpg';
                 return (
                   <figure className="my-8 rounded-2xl overflow-hidden border border-gray-800 bg-background/50 p-2 shadow-2xl group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={src}
+                      src={safeSrc}
                       alt={alt || "Blog image illustration"}
                       className="w-full max-h-[500px] object-cover rounded-xl transition-transform duration-500 group-hover:scale-[1.01]"
                     />
@@ -617,16 +618,19 @@ export default function BlogPostPage() {
               td: ({ children }) => (
                 <td className="px-4 py-3 border-b border-gray-800/50">{children}</td>
               ),
-              a: ({ href, children }) => (
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline font-semibold"
-                >
-                  {children}
-                </a>
-              ),
+              a: ({ href, children }) => {
+                const safeHref = href && /^(https?:\/\/|\/|mailto:)/i.test(href.trim()) ? href : '#';
+                return (
+                  <a
+                    href={safeHref}
+                    target={safeHref.startsWith('http') ? "_blank" : undefined}
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-semibold"
+                  >
+                    {children}
+                  </a>
+                );
+              },
               hr: () => <hr className="border-gray-800/80 my-8" />
             }}
           >

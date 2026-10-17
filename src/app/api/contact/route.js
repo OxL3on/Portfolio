@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCollectionData, saveCollectionData } from "@/lib/db";
+import { validateAdminSession, sanitizeUrl } from "@/lib/auth";
 
 const defaultContacts = [
     { name: "github", username: "OxL3on", link: "https://github.com/OxL3on" },
@@ -21,20 +22,32 @@ export async function GET() {
 }
 
 export async function POST(req) {
+    const auth = validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const data = await req.json();
         const current = await getCollectionData("contact", defaultContacts);
 
         let updated = [];
         if (Array.isArray(data)) {
-            updated = data;
+            updated = data.map(item => ({
+                ...item,
+                link: item.link ? sanitizeUrl(item.link) : ""
+            }));
         } else {
-            const index = current.findIndex(c => c.name.toLowerCase() === data.name?.toLowerCase());
+            const cleanData = {
+                ...data,
+                link: data.link ? sanitizeUrl(data.link) : ""
+            };
+            const index = current.findIndex(c => c.name && cleanData.name && c.name.toLowerCase() === cleanData.name.toLowerCase());
             if (index >= 0) {
-                current[index] = { ...current[index], ...data };
+                current[index] = { ...current[index], ...cleanData };
                 updated = current;
             } else {
-                updated = [...current, data];
+                updated = [...current, cleanData];
             }
         }
 

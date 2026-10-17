@@ -1,6 +1,6 @@
 {
   "adminSettings": {
-    "passcode": "MyNameIsLeon123##",
+    "passcode": "scrypt$e6c440e3d5acc56445871681792485de$041820ace9a45bf39015a432f2267380fe0733fada8d1147af71cd916ebcff2a1910c003dc231fd0ff7272c910ab2bd14795101f53e8b5b07169998dd591e756",
     "adminEmail": "leonislamofficial123@gmail.com"
   },
   "mainInfo": {
@@ -26,7 +26,7 @@
       "Bug Bounty Hunter",
       "Offensive Security Enthusiast"
     ],
-    "updatedAt": "2026-10-17T11:39:28.829Z"
+    "updatedAt": "2026-10-17T13:16:45.193Z"
   },
   "education": [
     {

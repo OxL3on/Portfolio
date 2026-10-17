@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCollectionData, saveCollectionData } from "@/lib/db";
+import { validateAdminSession } from "@/lib/auth";
 
 const defaultSkills = [
     {
@@ -35,6 +36,11 @@ export async function GET() {
 
 export async function POST(req) {
     try {
+        const session = validateAdminSession(req);
+        if (!session.isValid) {
+            return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
+        }
+
         const body = await req.json();
         const current = await getCollectionData("skills", defaultSkills);
 
@@ -59,6 +65,11 @@ export async function POST(req) {
 
 export async function PUT(req) {
     try {
+        const session = validateAdminSession(req);
+        if (!session.isValid) {
+            return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
+        }
+
         const body = await req.json();
         const current = await getCollectionData("skills", defaultSkills);
         const index = current.findIndex(s => s.id === body.id || s.title === body.title);
@@ -78,11 +89,20 @@ export async function PUT(req) {
 
 export async function DELETE(req) {
     try {
+        const session = validateAdminSession(req);
+        if (!session.isValid) {
+            return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
+        }
+
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
         const title = searchParams.get('title');
-        const current = await getCollectionData("skills", defaultSkills);
 
+        if (!id && !title) {
+            return NextResponse.json({ error: "Missing required query parameter: id or title" }, { status: 400 });
+        }
+
+        const current = await getCollectionData("skills", defaultSkills);
         const filtered = current.filter(s => s.id !== id && s.title !== title);
         await saveCollectionData("skills", filtered);
         return NextResponse.json({ success: true, result: filtered });

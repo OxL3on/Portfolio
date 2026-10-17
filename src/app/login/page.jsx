@@ -10,13 +10,21 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
+    if (!auth) return;
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
         try {
-          const res = await fetch('/api/maininfo');
-          const data = await res.json();
-          const adminEmail = data?.gmail || "leonislamofficial123@gmail.com";
-          if (user.email === adminEmail) {
+          const idToken = await user.getIdToken();
+          const verifyRes = await fetch('/api/admin/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ firebaseIdToken: idToken })
+          });
+          if (verifyRes.ok) {
+            const data = await verifyRes.json();
+            if (data.adminUser?.token) {
+              localStorage.setItem("luffy_admin_session", data.adminUser.token);
+            }
             router.push('/dashboard');
           } else {
             await signOut(auth);
@@ -26,27 +34,35 @@ export default function LoginPage() {
     });
     return () => unsubscribe();
   }, [router]);
-  
 
   const handleGoogleLogin = async () => {
+    if (!auth || !provider) {
+      setErrorMsg("Firebase authentication is not configured in this environment.");
+      return;
+    }
     setLoading(true);
     setErrorMsg('');
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Verify if the user is the admin
-      const res = await fetch('/api/maininfo');
-      const data = await res.json();
-      const adminEmail = data?.gmail || "leonislamofficial123@gmail.com";
+      const idToken = await user.getIdToken();
+      const verifyRes = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firebaseIdToken: idToken })
+      });
 
-      if (user.email === adminEmail) {
-        // Success
+      if (verifyRes.ok) {
+        const data = await verifyRes.json();
+        if (data.adminUser?.token) {
+          localStorage.setItem("luffy_admin_session", data.adminUser.token);
+        }
         router.push('/dashboard');
       } else {
-        // Not admin
         await signOut(auth);
-        setErrorMsg("Unauthorized: You are not the admin. Logging out.");
+        const errData = await verifyRes.json().catch(() => ({}));
+        setErrorMsg(errData.error || "Unauthorized: Only the verified administrator is permitted.");
       }
     } catch (error) {
       console.error(error);

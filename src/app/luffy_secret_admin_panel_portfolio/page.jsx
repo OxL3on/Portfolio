@@ -61,13 +61,27 @@ export default function SecretAdminPortal() {
   const [newPasscode, setNewPasscode] = useState('');
   const [confirmPasscode, setConfirmPasscode] = useState('');
 
-  // Check existing session on mount
+  // Check existing session with server on mount
   useEffect(() => {
-    const session = localStorage.getItem('luffy_admin_session');
-    if (session) {
-      setIsAuthenticated(true);
-      fetchAllData();
-    }
+    const verifySession = async () => {
+      const token = localStorage.getItem('luffy_admin_session');
+      try {
+        const res = await fetch('/api/admin/auth', {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          credentials: 'same-origin'
+        });
+        if (res.ok) {
+          setIsAuthenticated(true);
+          fetchAllData();
+        } else {
+          localStorage.removeItem('luffy_admin_session');
+          setIsAuthenticated(false);
+        }
+      } catch (err) {
+        setIsAuthenticated(false);
+      }
+    };
+    verifySession();
   }, []);
 
   const handleLogin = async (e) => {
@@ -79,6 +93,7 @@ export default function SecretAdminPortal() {
       const res = await fetch('/api/admin/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ passcode: passcode.trim() })
       });
       const data = await res.json();
@@ -97,7 +112,10 @@ export default function SecretAdminPortal() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/auth', { method: 'DELETE', credentials: 'same-origin' });
+    } catch (e) {}
     localStorage.removeItem('luffy_admin_session');
     setIsAuthenticated(false);
     setPasscode('');
@@ -139,6 +157,28 @@ export default function SecretAdminPortal() {
     setTimeout(() => setSaveError(''), 4000);
   };
 
+  // Central authenticated fetch helper
+  const authFetch = async (url, options = {}) => {
+    const token = localStorage.getItem('luffy_admin_session');
+    const headers = {
+      ...(options.headers || {})
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(url, {
+      ...options,
+      headers,
+      credentials: 'same-origin'
+    });
+    if (res.status === 401) {
+      localStorage.removeItem('luffy_admin_session');
+      setIsAuthenticated(false);
+      notifyError('Admin session expired or invalid. Please sign in again.');
+    }
+    return res;
+  };
+
   // Upload file helper
   const handleFileUpload = async (e, fieldName, targetType = 'general') => {
     const file = e.target.files?.[0];
@@ -149,7 +189,7 @@ export default function SecretAdminPortal() {
     formData.append('targetType', targetType);
 
     try {
-      const res = await fetch('/api/upload', {
+      const res = await authFetch('/api/upload', {
         method: 'POST',
         body: formData
       });
@@ -170,7 +210,7 @@ export default function SecretAdminPortal() {
     if (e) e.preventDefault();
     setIsSaving(true);
     try {
-      const res = await fetch('/api/maininfo', {
+      const res = await authFetch('/api/maininfo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(mainInfo)
@@ -191,7 +231,7 @@ export default function SecretAdminPortal() {
   const saveSection = async (endpoint, data, name) => {
     setIsSaving(true);
     try {
-      const res = await fetch(endpoint, {
+      const res = await authFetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -220,7 +260,7 @@ export default function SecretAdminPortal() {
       return;
     }
     try {
-      const res = await fetch('/api/admin/auth', {
+      const res = await authFetch('/api/admin/auth', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -230,6 +270,9 @@ export default function SecretAdminPortal() {
       });
       const data = await res.json();
       if (res.ok) {
+        if (data.token) {
+          localStorage.setItem('luffy_admin_session', data.token);
+        }
         notifySuccess('Master passcode updated successfully!');
         setCurrentPasscode('');
         setNewPasscode('');

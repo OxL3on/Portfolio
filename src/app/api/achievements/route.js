@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCollectionData, saveCollectionData } from "@/lib/db";
+import { validateAdminSession } from "@/lib/auth";
 
 const defaultAchievements = [
     {
@@ -50,6 +51,11 @@ export async function GET() {
 }
 
 export async function POST(req) {
+    const auth = validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const body = await req.json();
         const current = await getCollectionData("achievements", defaultAchievements);
@@ -73,10 +79,15 @@ export async function POST(req) {
 }
 
 export async function PUT(req) {
+    const auth = validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const body = await req.json();
         const current = await getCollectionData("achievements", defaultAchievements);
-        const index = current.findIndex(a => a.id === body.id || a.title === body.title);
+        const index = current.findIndex(a => (body.id && a.id === body.id) || (body.title && a.title === body.title));
 
         if (index >= 0) {
             current[index] = { ...current[index], ...body };
@@ -92,13 +103,21 @@ export async function PUT(req) {
 }
 
 export async function DELETE(req) {
+    const auth = validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
         const title = searchParams.get('title');
-        const current = await getCollectionData("achievements", defaultAchievements);
+        if (!id && !title) {
+            return NextResponse.json({ error: "Identifier required" }, { status: 400 });
+        }
 
-        const filtered = current.filter(a => a.id !== id && a.title !== title);
+        const current = await getCollectionData("achievements", defaultAchievements);
+        const filtered = current.filter(a => (!id || a.id !== id) && (!title || a.title !== title));
         await saveCollectionData("achievements", filtered);
         return NextResponse.json({ success: true, result: filtered });
     } catch (e) {

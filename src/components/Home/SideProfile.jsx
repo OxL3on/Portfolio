@@ -69,7 +69,8 @@ const SideProfile = () => {
 
         <div className="flex justify-center flex-wrap gap-4 mt-6">
           {socials.map((social, idx) => {
-            const hasLink = social.link && social.link.trim() !== '' && social.link !== '#';
+            const isSafe = social.link && /^(https?:\/\/|mailto:)/i.test(social.link.trim());
+            const hasLink = isSafe && social.link.trim() !== '' && social.link !== '#';
             return (
               <a
                 key={idx}

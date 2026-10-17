@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCollectionData, saveCollectionData } from "@/lib/db";
+import { validateAdminSession } from "@/lib/auth";
 
 const defaultEducation = [
     {
@@ -28,6 +29,11 @@ export async function GET() {
 }
 
 export async function POST(req) {
+    const auth = validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const body = await req.json();
         const current = await getCollectionData("education", defaultEducation);
@@ -52,10 +58,15 @@ export async function POST(req) {
 }
 
 export async function PUT(req) {
+    const auth = validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const body = await req.json();
         const current = await getCollectionData("education", defaultEducation);
-        const index = current.findIndex(e => e.id === body.id || e.degree === body.degree);
+        const index = current.findIndex(e => (body.id && e.id === body.id) || (body.degree && e.degree === body.degree));
         
         if (index >= 0) {
             current[index] = { ...current[index], ...body };
@@ -71,13 +82,21 @@ export async function PUT(req) {
 }
 
 export async function DELETE(req) {
+    const auth = validateAdminSession(req);
+    if (!auth.authenticated) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
         const degree = searchParams.get('degree');
-        const current = await getCollectionData("education", defaultEducation);
+        if (!id && !degree) {
+            return NextResponse.json({ error: "Identifier required" }, { status: 400 });
+        }
 
-        const filtered = current.filter(e => e.id !== id && e.degree !== degree);
+        const current = await getCollectionData("education", defaultEducation);
+        const filtered = current.filter(e => (!id || e.id !== id) && (!degree || e.degree !== degree));
         await saveCollectionData("education", filtered);
         return NextResponse.json({ success: true, result: filtered });
     } catch (e) {

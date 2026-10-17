@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCollectionData, saveCollectionData } from "@/lib/db";
+import { validateAdminSession } from "@/lib/auth";
 
 const defaultProjects = [
     {
@@ -44,9 +45,18 @@ const defaultProjects = [
     }
 ];
 
-export async function GET() {
+export async function GET(req) {
     try {
+        const { searchParams } = new URL(req.url);
+        const title = searchParams.get('title');
+
         const projects = await getCollectionData("projects", defaultProjects);
+
+        if (title) {
+            const project = projects.find(p => p.title === title);
+            return NextResponse.json(project || defaultProjects[0]);
+        }
+
         return NextResponse.json(projects.length > 0 ? projects : defaultProjects);
     } catch (e) {
         return NextResponse.json(defaultProjects);
@@ -55,6 +65,11 @@ export async function GET() {
 
 export async function POST(req) {
     try {
+        const session = validateAdminSession(req);
+        if (!session.isValid) {
+            return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
+        }
+
         const body = await req.json();
         const current = await getCollectionData("projects", defaultProjects);
 
@@ -80,6 +95,11 @@ export async function POST(req) {
 
 export async function PUT(req) {
     try {
+        const session = validateAdminSession(req);
+        if (!session.isValid) {
+            return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
+        }
+
         const body = await req.json();
         const current = await getCollectionData("projects", defaultProjects);
         const index = current.findIndex(p => p.id === body.id || p.title === body.title);
@@ -99,11 +119,20 @@ export async function PUT(req) {
 
 export async function DELETE(req) {
     try {
+        const session = validateAdminSession(req);
+        if (!session.isValid) {
+            return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
+        }
+
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
         const title = searchParams.get('title');
-        const current = await getCollectionData("projects", defaultProjects);
 
+        if (!id && !title) {
+            return NextResponse.json({ error: "Missing required query parameter: id or title" }, { status: 400 });
+        }
+
+        const current = await getCollectionData("projects", defaultProjects);
         const filtered = current.filter(p => p.id !== id && p.title !== title);
         await saveCollectionData("projects", filtered);
         return NextResponse.json({ success: true, result: filtered });

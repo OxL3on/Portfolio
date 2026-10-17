@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCollectionData, saveCollectionData } from "@/lib/db";
+import { validateAdminSession } from "@/lib/auth";
 
 const defaultMainInfo = {
     name: "MD Leon Islam",
@@ -36,6 +37,11 @@ export async function GET() {
 
 export async function POST(req) {
     try {
+        const session = validateAdminSession(req);
+        if (!session.isValid) {
+            return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
+        }
+
         const body = await req.json();
         const current = await getCollectionData("mainInfo", defaultMainInfo);
         const updated = {
