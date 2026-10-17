@@ -1,6 +1,6 @@
 {
   "adminSettings": {
-    "passcode": "scrypt$6f4d0becf601af6726df5f2ef6e98711$34fff62a5ca1efd381669998c9472944f798f998be26eca89eb60c4d9f4c9ebb36739e6fae98cb5b539389a7e14febc50d1aa29a7db325a4a593f5e5c960d822",
+    "passcode": "scrypt$0da08a7159e0075191882d7e9f606ef3$3cd29c873852c54ea10b3a21906fe4ec5fc81fa107046c546596fe22017c4d3875ee9a953dcc429e01dee58d405582d43742f31c43ab424e1996893fbe49f73e",
     "adminEmail": "leonislamofficial123@gmail.com"
   },
   "mainInfo": {
@@ -27,7 +27,7 @@
       "Offensive Security Enthusiast"
     ],
     "resumeUrl": "/resume.pdf",
-    "updatedAt": "2026-10-17T14:31:14.089Z"
+    "updatedAt": "2026-10-17T14:42:57.685Z"
   },
   "education": [
     {
