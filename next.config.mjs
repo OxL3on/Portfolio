@@ -31,6 +31,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'i.ibb.co',
       },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
     ],
   },
   async headers() {
@@ -60,9 +64,9 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://www.googletagmanager.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "img-src 'self' data: blob: https://count.getloli.com https://avatars.githubusercontent.com https://raw.githubusercontent.com https://images.unsplash.com https://lh3.googleusercontent.com https://res.cloudinary.com https://i.ibb.co",
+              "img-src 'self' data: blob: https://count.getloli.com https://avatars.githubusercontent.com https://raw.githubusercontent.com https://images.unsplash.com https://lh3.googleusercontent.com https://res.cloudinary.com https://i.ibb.co https://*.supabase.co",
               "font-src 'self' https://fonts.gstatic.com data:",
-              "connect-src 'self' https://api.web3forms.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://oauth2.googleapis.com https://count.getloli.com",
+              "connect-src 'self' https://api.web3forms.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://oauth2.googleapis.com https://count.getloli.com https://*.supabase.co",
               "frame-src https://accounts.google.com https://*.firebaseapp.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",

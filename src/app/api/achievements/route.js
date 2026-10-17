@@ -51,7 +51,7 @@ export async function GET() {
 }
 
 export async function POST(req) {
-    const auth = validateAdminSession(req);
+    const auth = await validateAdminSession(req);
     if (!auth.authenticated) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -79,7 +79,7 @@ export async function POST(req) {
 }
 
 export async function PUT(req) {
-    const auth = validateAdminSession(req);
+    const auth = await validateAdminSession(req);
     if (!auth.authenticated) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -103,7 +103,7 @@ export async function PUT(req) {
 }
 
 export async function DELETE(req) {
-    const auth = validateAdminSession(req);
+    const auth = await validateAdminSession(req);
     if (!auth.authenticated) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

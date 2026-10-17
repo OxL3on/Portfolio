@@ -7,18 +7,19 @@ import {
   checkRateLimit,
   getClientIp
 } from '@/lib/auth';
+import { uploadToSupabaseStorage } from '@/lib/supabase-server';
 
 export async function POST(req) {
   try {
     // 1. Enforce Server-Side Admin Authentication
-    const session = validateAdminSession(req);
+    const session = await validateAdminSession(req);
     if (!session.isValid) {
       return NextResponse.json({ error: 'Unauthorized: Admin authentication required for asset uploads' }, { status: 401 });
     }
 
     // 2. Rate Limiting for Uploads
     const ip = getClientIp(req);
-    const rateLimit = checkRateLimit(`upload:${ip}`, 30, 10 * 60 * 1000);
+    const rateLimit = await checkRateLimit(`upload:${ip}`, 30, 10 * 60 * 1000);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: 'Upload rate limit exceeded. Please wait a few minutes before uploading again.' },
@@ -42,15 +43,49 @@ export async function POST(req) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
+    const targetFileName = validation.safeFilename;
+    const isProd = process.env.NODE_ENV === 'production';
+    const isSupabaseConfigured = Boolean(process.env.SUPABASE_URL && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY));
+
+    // Priority 1: Persistent Supabase Storage Upload
+    if (isSupabaseConfigured) {
+      const mimeTypes = {
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.webp': 'image/webp',
+        '.gif': 'image/gif',
+        '.pdf': 'application/pdf'
+      };
+      const contentType = mimeTypes[validation.extension] || 'application/octet-stream';
+      const uploadResult = await uploadToSupabaseStorage(buffer, targetFileName, contentType);
+      
+      if (!uploadResult.success) {
+        return NextResponse.json({ error: `Supabase Storage upload failed: ${uploadResult.error}` }, { status: 500 });
+      }
+
+      return NextResponse.json({
+        success: true,
+        url: uploadResult.publicUrl,
+        name: file.name,
+        size: validation.size
+      });
+    }
+
+    if (isProd) {
+      return NextResponse.json(
+        { error: 'Persistent storage configuration missing: SUPABASE_URL and SUPABASE_SECRET_KEY are required in production.' },
+        { status: 500 }
+      );
+    }
+
+    // Local Development Fallback: Write safe image to public/uploads
     const uploadDir = path.join(process.cwd(), 'public/uploads');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    const targetFileName = validation.safeFilename;
     const filePath = path.join(uploadDir, targetFileName);
-
-    // Write safe image to public/uploads
     fs.writeFileSync(filePath, buffer);
 
     // Sync designated static fallbacks safely

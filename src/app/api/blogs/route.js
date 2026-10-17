@@ -609,7 +609,7 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
-    const session = validateAdminSession(req);
+    const session = await validateAdminSession(req);
     if (!session.isValid) {
       return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
     }
@@ -639,7 +639,7 @@ export async function POST(req) {
 
 export async function PUT(req) {
   try {
-    const session = validateAdminSession(req);
+    const session = await validateAdminSession(req);
     if (!session.isValid) {
       return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
     }
@@ -663,7 +663,7 @@ export async function PUT(req) {
 
 export async function DELETE(req) {
   try {
-    const session = validateAdminSession(req);
+    const session = await validateAdminSession(req);
     if (!session.isValid) {
       return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
     }

@@ -22,7 +22,7 @@ export async function GET() {
 }
 
 export async function POST(req) {
-    const auth = validateAdminSession(req);
+    const auth = await validateAdminSession(req);
     if (!auth.authenticated) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

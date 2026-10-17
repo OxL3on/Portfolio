@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import clientPromise from '@/lib/mongodb';
 
 // ==========================================
 // 1. SERVER SECRET & PERSISTENCE
@@ -160,7 +161,7 @@ export function createAdminSession(adminUser = { name: 'MD Leon Islam', role: 'A
   };
 }
 
-export function validateAdminSession(req) {
+export async function validateAdminSession(req) {
   try {
     if (req && req.method && !['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
       if (!validateSameOrigin(req)) {
@@ -221,7 +222,21 @@ export function validateAdminSession(req) {
       return { isValid: false, authenticated: false, error: 'Unauthorized: Invalid session signature' };
     }
 
-    // If server restarted and memory is clean, try reloading persistent sessions
+    // Check shared MongoDB revocation store
+    if (clientPromise) {
+      try {
+        const client = await clientPromise;
+        const db = client.db(process.env.MONGODB_DB_NAME || 'portfolio_db');
+        const revoked = await db.collection('revokedSessions').findOne({ tokenId });
+        if (revoked) {
+          return { isValid: false, authenticated: false, error: 'Unauthorized: Session has been revoked or logged out' };
+        }
+      } catch (err) {
+        console.warn('MongoDB session revocation check error:', err);
+      }
+    }
+
+    // Check in-memory / local persistent sessions
     if (!activeSessions.has(tokenId)) {
       const reloaded = loadPersistentSessions();
       for (const [k, v] of reloaded.entries()) {
@@ -229,8 +244,8 @@ export function validateAdminSession(req) {
       }
     }
 
-    // Verify session has not been revoked or invalidated
-    if (!activeSessions.has(tokenId)) {
+    // In local development mode without MongoDB, enforce activeSessions presence
+    if (!clientPromise && !activeSessions.has(tokenId)) {
       return { isValid: false, authenticated: false, error: 'Unauthorized: Session has been revoked or logged out' };
     }
 
@@ -238,23 +253,54 @@ export function validateAdminSession(req) {
     return {
       isValid: true,
       authenticated: true,
-      adminUser: session.adminUser || { name: 'MD Leon Islam', role: 'Administrator' }
+      adminUser: (session && session.adminUser) || { name: 'MD Leon Islam', role: 'Administrator' }
     };
   } catch (err) {
     return { isValid: false, authenticated: false, error: 'Unauthorized: Authentication verification failed' };
   }
 }
 
-export function revokeSession(token) {
+export async function revokeSession(token) {
   if (!token) return;
-  const tokenId = token.split('.')[0];
+  const parts = token.split('.');
+  const tokenId = parts[0];
+  const expiresAt = parts[1] ? parseInt(parts[1], 10) : Date.now() + 86400000;
+
   activeSessions.delete(tokenId);
   savePersistentSessions(activeSessions);
+
+  if (clientPromise) {
+    try {
+      const client = await clientPromise;
+      const db = client.db(process.env.MONGODB_DB_NAME || 'portfolio_db');
+      await db.collection('revokedSessions').updateOne(
+        { tokenId },
+        { $set: { tokenId, revokedAt: Date.now(), expiresAt: new Date(expiresAt) } },
+        { upsert: true }
+      );
+    } catch (e) {
+      console.warn('MongoDB revokeSession error:', e);
+    }
+  }
 }
 
-export function revokeAllSessions() {
+export async function revokeAllSessions() {
   activeSessions.clear();
   savePersistentSessions(activeSessions);
+
+  if (clientPromise) {
+    try {
+      const client = await clientPromise;
+      const db = client.db(process.env.MONGODB_DB_NAME || 'portfolio_db');
+      await db.collection('adminSettings').updateOne(
+        {},
+        { $set: { sessionsRevokedBefore: Date.now() } },
+        { upsert: true }
+      );
+    } catch (e) {
+      console.warn('MongoDB revokeAllSessions error:', e);
+    }
+  }
 }
 
 // CSRF Origin validation for state-changing HTTP methods
@@ -274,14 +320,50 @@ export function validateSameOrigin(req) {
 }
 
 // ==========================================
-// 4. RATE LIMITING (Sliding Window in-memory)
+// 4. RATE LIMITING (Distributed + In-Memory Fallback)
 // ==========================================
 const rateLimitMap = globalThis.__adminRateLimitMap || (globalThis.__adminRateLimitMap = new Map());
 
-export function checkRateLimit(key, maxAttempts = 5, windowMs = 15 * 60 * 1000) {
+export async function checkRateLimit(key, maxAttempts = 5, windowMs = 15 * 60 * 1000) {
   const now = Date.now();
   const windowStart = now - windowMs;
 
+  // 1. Try shared MongoDB rate limiting
+  if (clientPromise) {
+    try {
+      const client = await clientPromise;
+      const db = client.db(process.env.MONGODB_DB_NAME || 'portfolio_db');
+      const doc = await db.collection('rateLimits').findOne({ _id: key });
+      let timestamps = doc && Array.isArray(doc.timestamps) ? doc.timestamps.filter(ts => ts > windowStart) : [];
+
+      if (timestamps.length >= maxAttempts) {
+        const oldest = timestamps[0];
+        const retryAfter = Math.ceil((oldest + windowMs - now) / 1000);
+        return {
+          allowed: false,
+          remaining: 0,
+          retryAfterSeconds: Math.max(1, retryAfter)
+        };
+      }
+
+      timestamps.push(now);
+      await db.collection('rateLimits').updateOne(
+        { _id: key },
+        { $set: { timestamps, expireAt: new Date(now + windowMs) } },
+        { upsert: true }
+      );
+
+      return {
+        allowed: true,
+        remaining: maxAttempts - timestamps.length,
+        retryAfterSeconds: 0
+      };
+    } catch (e) {
+      // Fallback to in-memory on database error
+    }
+  }
+
+  // 2. In-memory sliding window fallback (development & offline)
   let timestamps = rateLimitMap.get(key) || [];
   timestamps = timestamps.filter(ts => ts > windowStart);
 
@@ -314,8 +396,15 @@ export function checkRateLimit(key, maxAttempts = 5, windowMs = 15 * 60 * 1000) 
   };
 }
 
-export function clearRateLimit(key) {
+export async function clearRateLimit(key) {
   rateLimitMap.delete(key);
+  if (clientPromise) {
+    try {
+      const client = await clientPromise;
+      const db = client.db(process.env.MONGODB_DB_NAME || 'portfolio_db');
+      await db.collection('rateLimits').deleteOne({ _id: key });
+    } catch (e) {}
+  }
 }
 
 export function getClientIp(req) {

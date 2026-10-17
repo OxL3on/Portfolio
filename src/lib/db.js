@@ -3,8 +3,9 @@ import path from 'path';
 import clientPromise from '@/lib/mongodb';
 
 const DATA_FILE = path.join(process.cwd(), 'src/data/portfolio_db.json');
+const DB_NAME = process.env.MONGODB_DB_NAME || 'portfolio_db';
 
-// Read JSON fallback file safely
+// Read JSON fallback file safely (development / offline only)
 export function getLocalData() {
   try {
     if (fs.existsSync(DATA_FILE)) {
@@ -17,7 +18,7 @@ export function getLocalData() {
   return {};
 }
 
-// Write to JSON fallback file safely
+// Write to JSON fallback file safely (development only)
 export function saveLocalData(updater) {
   try {
     const current = getLocalData();
@@ -36,23 +37,36 @@ export function saveLocalData(updater) {
 
 // Get collection or property
 export async function getCollectionData(collectionName, fallbackValue = []) {
-  try {
-    if (clientPromise) {
+  const isProd = process.env.NODE_ENV === 'production';
+
+  if (clientPromise) {
+    try {
       const client = await clientPromise;
-      const db = client.db('portfolio_db');
+      const db = client.db(DB_NAME);
+
       if (collectionName === 'mainInfo') {
         const item = await db.collection(collectionName).findOne({});
-        if (item) return item;
+        if (item) {
+          const { _id, ...cleanItem } = item;
+          return cleanItem;
+        }
       } else {
-        const items = await db.collection(collectionName).find({}).sort({ _id: -1 }).toArray();
-        if (items && items.length > 0) return items;
+        const items = await db.collection(collectionName).find({}).toArray();
+        if (items && items.length > 0) {
+          return items.map(({ _id, ...clean }) => clean);
+        }
+      }
+    } catch (e) {
+      console.error(`MongoDB error reading collection "${collectionName}":`, e);
+      if (isProd) {
+        throw new Error(`Database Error: Failed to query "${collectionName}" from MongoDB in production.`);
       }
     }
-  } catch (e) {
-    // MongoDB offline/not configured, fallback to local storage
+  } else if (isProd) {
+    throw new Error('Database Error: MONGODB_URI is required for production deployment.');
   }
 
-  // Fallback to local JSON file
+  // Development / Offline fallback to local JSON file
   const local = getLocalData();
   if (local[collectionName] !== undefined) {
     return local[collectionName];
@@ -62,17 +76,12 @@ export async function getCollectionData(collectionName, fallbackValue = []) {
 
 // Save collection or property
 export async function saveCollectionData(collectionName, data) {
-  // 1. Always save to local JSON file
-  saveLocalData((prev) => ({
-    ...prev,
-    [collectionName]: data,
-  }));
+  const isProd = process.env.NODE_ENV === 'production';
 
-  // 2. Also save to MongoDB if connected
-  try {
-    if (clientPromise) {
+  if (clientPromise) {
+    try {
       const client = await clientPromise;
-      const db = client.db('portfolio_db');
+      const db = client.db(DB_NAME);
 
       if (collectionName === 'mainInfo') {
         await db.collection(collectionName).updateOne({}, { $set: data }, { upsert: true });
@@ -82,9 +91,81 @@ export async function saveCollectionData(collectionName, data) {
           await db.collection(collectionName).insertMany(data);
         }
       }
+    } catch (e) {
+      console.error(`MongoDB error saving collection "${collectionName}":`, e);
+      if (isProd) {
+        throw new Error(`Database Error: Failed to persist "${collectionName}" to MongoDB in production.`);
+      }
     }
-  } catch (e) {
-    console.warn(`MongoDB sync failed for ${collectionName}, saved to local JSON instead.`);
+  } else if (isProd) {
+    throw new Error('Database Error: MONGODB_URI is required for persistent production database writes.');
+  }
+
+  // Keep local JSON in sync during non-production
+  if (!isProd) {
+    saveLocalData((prev) => ({
+      ...prev,
+      [collectionName]: data,
+    }));
+  }
+
+  return { success: true };
+}
+
+// Retrieve administrative settings (passcode hash and admin email)
+export async function getAdminSettings() {
+  const isProd = process.env.NODE_ENV === 'production';
+
+  if (clientPromise) {
+    try {
+      const client = await clientPromise;
+      const db = client.db(DB_NAME);
+      const settings = await db.collection('adminSettings').findOne({});
+      if (settings) {
+        const { _id, ...clean } = settings;
+        return clean;
+      }
+    } catch (e) {
+      console.error('MongoDB error reading adminSettings:', e);
+      if (isProd) {
+        throw new Error('Database Error: Failed to retrieve adminSettings from MongoDB in production.');
+      }
+    }
+  } else if (isProd) {
+    throw new Error('Database Error: MONGODB_URI is required for production authentication.');
+  }
+
+  const local = getLocalData();
+  return local.adminSettings || {};
+}
+
+// Persist administrative settings
+export async function saveAdminSettings(settings) {
+  const isProd = process.env.NODE_ENV === 'production';
+
+  if (clientPromise) {
+    try {
+      const client = await clientPromise;
+      const db = client.db(DB_NAME);
+      await db.collection('adminSettings').updateOne({}, { $set: settings }, { upsert: true });
+    } catch (e) {
+      console.error('MongoDB error saving adminSettings:', e);
+      if (isProd) {
+        throw new Error('Database Error: Failed to save adminSettings to MongoDB in production.');
+      }
+    }
+  } else if (isProd) {
+    throw new Error('Database Error: MONGODB_URI is required to update adminSettings in production.');
+  }
+
+  if (!isProd) {
+    saveLocalData((prev) => ({
+      ...prev,
+      adminSettings: {
+        ...prev.adminSettings,
+        ...settings
+      }
+    }));
   }
 
   return { success: true };

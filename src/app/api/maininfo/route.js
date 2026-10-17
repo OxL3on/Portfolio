@@ -38,7 +38,7 @@ export async function GET() {
 
 export async function POST(req) {
     try {
-        const session = validateAdminSession(req);
+        const session = await validateAdminSession(req);
         if (!session.isValid) {
             return NextResponse.json({ error: session.error || "Unauthorized: Admin session required" }, { status: 401 });
         }

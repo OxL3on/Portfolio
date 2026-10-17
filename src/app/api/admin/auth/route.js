@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getLocalData, saveLocalData } from '@/lib/db';
+import { getAdminSettings, saveAdminSettings } from '@/lib/db';
 import {
   hashPassword,
   verifyPassword,
@@ -15,7 +15,7 @@ import {
 
 // Check if current session is authenticated
 export async function GET(req) {
-  const session = validateAdminSession(req);
+  const session = await validateAdminSession(req);
   if (!session.isValid) {
     return NextResponse.json({ authenticated: false, error: session.error }, { status: 401 });
   }
@@ -33,7 +33,7 @@ export async function POST(req) {
     }
 
     const ip = getClientIp(req);
-    const rateLimit = checkRateLimit(`auth:${ip}`, 5, 15 * 60 * 1000);
+    const rateLimit = await checkRateLimit(`auth:${ip}`, 5, 15 * 60 * 1000);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: `Too many login attempts. Please try again in ${rateLimit.retryAfterSeconds} seconds.` },
@@ -52,8 +52,8 @@ export async function POST(req) {
           return NextResponse.json({ error: 'Invalid Google identity token' }, { status: 401 });
         }
         const tokenInfo = await googleRes.json();
-        const data = getLocalData();
-        const adminEmail = (data.adminSettings?.adminEmail || "leonislamofficial123@gmail.com").toLowerCase();
+        const adminSettings = await getAdminSettings();
+        const adminEmail = (adminSettings?.adminEmail || "leonislamofficial123@gmail.com").toLowerCase();
 
         if (!tokenInfo.email || tokenInfo.email.toLowerCase() !== adminEmail) {
           return NextResponse.json({ error: 'Unauthorized: Google account is not the registered administrator' }, { status: 403 });
@@ -99,30 +99,38 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Passcode is required' }, { status: 400 });
     }
 
-    const data = getLocalData();
-    const activePasscode = data.adminSettings?.passcode || '';
-    if (!activePasscode) {
-      return NextResponse.json({ error: 'Admin passcode is not configured on server' }, { status: 500 });
+    const adminSettings = await getAdminSettings();
+    let activePasscode = adminSettings?.passcode || '';
+
+    // Check against existing database hash or environment variable initialization
+    let isValid = false;
+    let needsUpgrade = false;
+
+    if (activePasscode) {
+      const result = verifyPassword(passcode.trim(), activePasscode);
+      isValid = result.valid;
+      needsUpgrade = result.needsUpgrade;
     }
 
-    const { valid, needsUpgrade } = verifyPassword(passcode.trim(), activePasscode);
+    // Support ADMIN_MASTER_PASSCODE from environment variables (e.g. Vercel deployment initialization)
+    if (!isValid && process.env.ADMIN_MASTER_PASSCODE && passcode.trim() === process.env.ADMIN_MASTER_PASSCODE.trim()) {
+      isValid = true;
+      needsUpgrade = true; // Upgrade/sync the hash into the database
+    }
 
-    if (!valid) {
+    if (!isValid) {
       return NextResponse.json({ error: 'Invalid secret passcode' }, { status: 401 });
     }
 
-    clearRateLimit(`auth:${ip}`);
+    await clearRateLimit(`auth:${ip}`);
 
-    // Transparently upgrade plaintext passcode to strong scrypt hash
+    // Persist or upgrade passcode to strong scrypt hash in persistent database
     if (needsUpgrade) {
       const hashed = hashPassword(passcode.trim());
-      saveLocalData((prev) => ({
-        ...prev,
-        adminSettings: {
-          ...prev.adminSettings,
-          passcode: hashed
-        }
-      }));
+      await saveAdminSettings({
+        ...adminSettings,
+        passcode: hashed
+      });
     }
 
     const adminUser = {
@@ -153,6 +161,7 @@ export async function POST(req) {
 
     return response;
   } catch (error) {
+    console.error('Auth POST error:', error);
     return NextResponse.json({ error: 'Auth service error' }, { status: 500 });
   }
 }
@@ -165,7 +174,7 @@ export async function PUT(req) {
     }
 
     const ip = getClientIp(req);
-    const rateLimit = checkRateLimit(`auth_put:${ip}`, 5, 15 * 60 * 1000);
+    const rateLimit = await checkRateLimit(`auth_put:${ip}`, 5, 15 * 60 * 1000);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: `Too many update attempts. Please retry later.` },
@@ -182,31 +191,33 @@ export async function PUT(req) {
       return NextResponse.json({ error: 'New passcode must be at least 6 characters' }, { status: 400 });
     }
 
-    const data = getLocalData();
-    const activePasscode = data.adminSettings?.passcode || '';
-    if (!activePasscode) {
-      return NextResponse.json({ error: 'Admin passcode is not configured on server' }, { status: 500 });
+    const adminSettings = await getAdminSettings();
+    const activePasscode = adminSettings?.passcode || '';
+
+    let isCurrentValid = false;
+    if (activePasscode) {
+      const { valid } = verifyPassword(currentPasscode.trim(), activePasscode);
+      isCurrentValid = valid;
+    }
+    if (!isCurrentValid && process.env.ADMIN_MASTER_PASSCODE && currentPasscode.trim() === process.env.ADMIN_MASTER_PASSCODE.trim()) {
+      isCurrentValid = true;
     }
 
-    const { valid } = verifyPassword(currentPasscode.trim(), activePasscode);
-    if (!valid) {
+    if (!isCurrentValid) {
       return NextResponse.json({ error: 'Current passcode is incorrect' }, { status: 403 });
     }
 
     // Hash the new passcode securely
     const hashedNew = hashPassword(newPasscode.trim());
 
-    saveLocalData((prev) => ({
-      ...prev,
-      adminSettings: {
-        ...prev.adminSettings,
-        passcode: hashedNew,
-        ...(newEmail && typeof newEmail === 'string' ? { adminEmail: newEmail.trim() } : {})
-      }
-    }));
+    await saveAdminSettings({
+      ...adminSettings,
+      passcode: hashedNew,
+      ...(newEmail && typeof newEmail === 'string' ? { adminEmail: newEmail.trim() } : {})
+    });
 
-    // Revoke all existing sessions and create a fresh one for the admin
-    revokeAllSessions();
+    // Revoke all existing sessions across serverless instances and create a fresh one
+    await revokeAllSessions();
     const freshSession = createAdminSession({ name: 'MD Leon Islam', role: 'Administrator' });
 
     const response = NextResponse.json({
@@ -226,6 +237,7 @@ export async function PUT(req) {
 
     return response;
   } catch (error) {
+    console.error('Auth PUT error:', error);
     return NextResponse.json({ error: 'Failed to update passcode' }, { status: 500 });
   }
 }
@@ -246,7 +258,7 @@ export async function DELETE(req) {
       }
     }
     if (token) {
-      revokeSession(token);
+      await revokeSession(token);
     }
     const response = NextResponse.json({ success: true, message: 'Logged out successfully' });
     response.cookies.delete('admin_session');

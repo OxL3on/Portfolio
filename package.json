@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate": "node scripts/migrate-to-mongodb.mjs",
+    "test:security": "node scripts/test-security.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.109.0",
     "firebase": "^12.11.0",
     "framer-motion": "^12.38.0",
     "lottie-react": "^2.4.1",
