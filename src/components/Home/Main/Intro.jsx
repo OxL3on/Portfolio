@@ -22,6 +22,18 @@ const Intro = () => {
     "Offensive Security Enthusiast"
   ];
 
+  const getResumeHref = () => {
+    const raw = (mainInfo?.resumeUrl || mainInfo?.resume || '').trim();
+    if (!raw || raw === '#') return '/resume.pdf';
+    if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('/')) {
+      return raw;
+    }
+    return `https://${raw}`;
+  };
+
+  const resumeHref = getResumeHref();
+  const isPdf = resumeHref.toLowerCase().endsWith('.pdf');
+
   return (
     <section className="bg-card/90 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-gray-800 shadow-2xl transition-colors duration-300">
       <span className="text-primary text-xs font-bold uppercase tracking-widest">
@@ -46,14 +58,10 @@ const Intro = () => {
 
       <div className="flex flex-wrap items-center gap-6 mt-10">
         <a
-          href={mainInfo?.resumeUrl || mainInfo?.resume || '/resume.pdf'}
-          target="_blank"
-          rel="noopener noreferrer"
-          download={
-            (mainInfo?.resumeUrl || mainInfo?.resume || '').endsWith('.pdf')
-              ? 'MD_Leon_Islam_Resume.pdf'
-              : undefined
-          }
+          href={resumeHref}
+          target={resumeHref.startsWith('http') ? '_blank' : undefined}
+          rel={resumeHref.startsWith('http') ? 'noopener noreferrer' : undefined}
+          download={isPdf ? 'MD_Leon_Islam_Resume.pdf' : undefined}
           className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-medium hover:opacity-90 transition shadow-lg cursor-pointer"
         >
           <Download size={18} />

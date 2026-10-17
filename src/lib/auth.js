@@ -356,6 +356,11 @@ export function sanitizeUrl(url) {
     return trimmed;
   }
 
+  // Auto-prepend https:// if user entered domain without protocol (e.g. google.com, drive.google.com/xyz)
+  if (/^[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+/i.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+
   return '#';
 }
 
