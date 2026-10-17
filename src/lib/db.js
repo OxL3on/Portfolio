@@ -63,10 +63,10 @@ export async function getCollectionData(collectionName, fallbackValue = []) {
       }
     }
   } else if (isProd) {
-    throw new Error('Database Error: MONGODB_URI is required for production deployment.');
+    console.warn(`[db] MONGODB_URI not configured in production; falling back to local dataset for "${collectionName}".`);
   }
 
-  // Development / Offline fallback to local JSON file
+  // Development, build, or offline fallback to local JSON file
   const local = getLocalData();
   if (local[collectionName] !== undefined) {
     return local[collectionName];
@@ -132,7 +132,7 @@ export async function getAdminSettings() {
       }
     }
   } else if (isProd) {
-    throw new Error('Database Error: MONGODB_URI is required for production authentication.');
+    console.warn('[db] MONGODB_URI not configured in production; falling back to local admin settings.');
   }
 
   const local = getLocalData();
