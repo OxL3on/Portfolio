@@ -3,6 +3,7 @@ import PageLoader from "@/components/shared/PageLoader";
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { useSharedData } from '@/hooks/useSharedData';
+import { Download } from 'lucide-react';
 
 const Intro = () => {
   const { data: mainInfo, isLoading } = useSharedData('mainInfo', async () => {
@@ -44,11 +45,20 @@ const Intro = () => {
       </div>
 
       <div className="flex flex-wrap items-center gap-6 mt-10">
-        <Link href={'/projects'}>
-          <button className="bg-primary text-white px-6 py-2.5 rounded-xl font-medium hover:opacity-90 transition shadow-lg">
-            View Projects
-          </button>
-        </Link>
+        <a
+          href={mainInfo?.resumeUrl || mainInfo?.resume || '/resume.pdf'}
+          target="_blank"
+          rel="noopener noreferrer"
+          download={
+            (mainInfo?.resumeUrl || mainInfo?.resume || '').endsWith('.pdf')
+              ? 'MD_Leon_Islam_Resume.pdf'
+              : undefined
+          }
+          className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-medium hover:opacity-90 transition shadow-lg cursor-pointer"
+        >
+          <Download size={18} />
+          <span>Download CV/Resume</span>
+        </a>
         <Link href={'/about'}>
           <button className="text-gray-400 font-medium hover:text-primary transition">
             About Me

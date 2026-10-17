@@ -689,6 +689,22 @@ export default function SecretAdminPortal() {
                     className="w-full bg-card border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-foreground"
                   />
                 </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-300 uppercase mb-2">
+                    CV / Resume Download Link
+                  </label>
+                  <input
+                    type="text"
+                    value={mainInfo.resumeUrl || ''}
+                    onChange={(e) => setMainInfo({ ...mainInfo, resumeUrl: e.target.value })}
+                    placeholder="e.g., https://drive.google.com/... or /resume.pdf"
+                    className="w-full bg-card border border-gray-700 rounded-xl px-4 py-2.5 text-xs text-foreground focus:border-primary focus:outline-none"
+                  />
+                  <p className="text-[11px] text-gray-500 mt-1.5">
+                    This link is used by the &quot;Download CV/Resume&quot; button on your home hero section. You can update it anytime to any Google Drive link, direct PDF, or file URL.
+                  </p>
+                </div>
               </div>
             </div>
           )}

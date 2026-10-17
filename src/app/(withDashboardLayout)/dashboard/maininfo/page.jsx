@@ -58,6 +58,11 @@ export default function MainInfoPage() {
             <label className="text-sm font-semibold text-foreground/80 ml-1">Admin Email (Firebase Login Auth)</label>
             <input type="email" name="gmail" value={formData.gmail || ''} onChange={handleChange} placeholder="e.g., leonislamofficial123@gmail.com" className="w-full bg-background/50 border border-gray-700/50 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-foreground transition-all" required />
           </div>
+          <div className="space-y-2 md:col-span-2">
+            <label className="text-sm font-semibold text-foreground/80 ml-1">CV / Resume Download Link</label>
+            <input type="text" name="resumeUrl" value={formData.resumeUrl || formData.resume || ''} onChange={(e) => setFormData({ ...formData, resumeUrl: e.target.value, resume: e.target.value })} placeholder="e.g., https://drive.google.com/... or /resume.pdf" className="w-full bg-background/50 border border-gray-700/50 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-foreground transition-all" />
+            <p className="text-xs text-foreground/40 ml-1">This link powers the &quot;Download CV/Resume&quot; button in your home hero section.</p>
+          </div>
         </div>
 
         <div className="space-y-2">

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCollectionData, saveCollectionData } from "@/lib/db";
-import { validateAdminSession } from "@/lib/auth";
+import { validateAdminSession, sanitizeUrl } from "@/lib/auth";
 
 const defaultMainInfo = {
     name: "MD Leon Islam",
@@ -17,6 +17,7 @@ const defaultMainInfo = {
     location: "Patuakhali / Barishal, Bangladesh",
     status: "Available for Opportunities",
     github: "OxL3on",
+    resumeUrl: "/resume.pdf",
     roles: [
       "Penetration Tester",
       "CTF Player",
@@ -43,6 +44,13 @@ export async function POST(req) {
         }
 
         const body = await req.json();
+        if (body.resumeUrl !== undefined) {
+            body.resumeUrl = sanitizeUrl(body.resumeUrl);
+        }
+        if (body.resume !== undefined) {
+            body.resume = sanitizeUrl(body.resume);
+        }
+
         const current = await getCollectionData("mainInfo", defaultMainInfo);
         const updated = {
             ...current,
