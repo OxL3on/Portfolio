@@ -97,14 +97,15 @@ The website features two independent authentication architectures:
 
 ### A. The Secret Admin CMS (`/luffy_secret_admin_panel_portfolio`)
 - **Route:** [src/app/luffy_secret_admin_panel_portfolio/page.jsx](file:///home/leon/Portfolio/src/app/luffy_secret_admin_panel_portfolio/page.jsx)
-- **Protection:** Unpredictable secret URL with master passcode challenge.
+- **Protection:** Unpredictable secret URL with master passcode challenge and cryptographic server-validated sessions.
 - **Workflow:**
   1. User enters the master passcode.
-  2. Front-end sends `POST /api/admin/auth` with `{ passcode }`.
-  3. API strictly validates against `adminSettings.passcode` stored in the database.
-  4. On success, an active session token (`luffy_admin_session_${timestamp}`) is stored in the browser's `localStorage`.
-  5. On future visits, if `luffy_admin_session` exists, the user bypasses the login screen straight into the full CMS suite.
-  6. Passcode can be updated from Tab 10 (Security Settings), which verifies the `currentPasscode` before applying changes.
+  2. Front-end sends `POST /api/admin/auth` with `{ passcode }` over same-origin connection.
+  3. API strictly validates against `adminSettings.passcode` stored as a salted `scrypt` hash in the database.
+  4. On success, an `HttpOnly`, `SameSite=Lax`, `Secure` session cookie (`admin_session`) is set by the server. No bearer tokens are stored in `localStorage`.
+  5. Subsequent protected requests automatically transmit the secure `admin_session` cookie, which is validated cryptographically (HMAC-SHA256) on the server.
+  6. On logout, the client calls `DELETE /api/admin/auth`, which immediately revokes the session on the server and expires the cookie.
+  7. Passcode can be updated from Tab 10 (Security Settings), which verifies the `currentPasscode` before hashing and applying changes.
 
 ### B. Firebase Google OAuth Dashboard (`/dashboard`)
 - **Route:** [src/app/(withDashboardLayout)/dashboard](file:///home/leon/Portfolio/src/app/(withDashboardLayout))
@@ -112,7 +113,7 @@ The website features two independent authentication architectures:
 - **Workflow:**
   1. Guard checks `onAuthStateChanged(auth)`.
   2. If unauthenticated, redirects to `/login`.
-  3. If authenticated, verifies that the user's Google email matches the registered admin email (`data.gmail` or `leonislamofficial123@gmail.com`).
+  3. If authenticated, verifies that the user's Google email matches the registered admin email (`data.gmail` or configured admin email).
   4. Unauthorized emails are immediately logged out and redirected to `/`.
 
 ---
@@ -123,14 +124,20 @@ All endpoints run on the Next.js App Router under `src/app/api/`.
 
 ### 1. Admin Authentication (`/api/admin/auth`)
 - **File:** [src/app/api/admin/auth/route.js](file:///home/leon/Portfolio/src/app/api/admin/auth/route.js)
-- **`POST`**: Authenticates admin credentials.
-  - **Payload:** `{ "passcode": string, "email"?: string }`
-  - **Response (200):** `{ success: true, message: "Authenticated successfully", adminUser: { name, role, token } }`
-  - **Response (401):** `{ error: "Invalid secret passcode or email" }`
-- **`PUT`**: Updates the master passcode or admin email.
+- **`GET`**: Validates current session status via `admin_session` cookie.
+  - **Response (200):** `{ authenticated: true, adminUser: { name, role } }`
+  - **Response (401):** `{ authenticated: false, error: string }`
+- **`POST`**: Authenticates admin credentials and issues `HttpOnly` session cookie.
+  - **Payload:** `{ "passcode": string }`
+  - **Response (200):** `{ success: true, message: "Authenticated successfully", adminUser: { name, role } }` (Sets `admin_session` cookie)
+  - **Response (401):** `{ error: "Invalid secret passcode" }`
+  - **Response (429):** `{ error: "Too many authentication attempts. Please try again later." }`
+- **`PUT`**: Updates the master passcode or admin email (requires current passcode verification).
   - **Payload:** `{ "currentPasscode": string, "newPasscode": string, "newEmail"?: string }`
   - **Response (200):** `{ success: true, message: "Admin passcode updated successfully" }`
   - **Response (403):** `{ error: "Current passcode is incorrect" }`
+- **`DELETE`**: Revokes the active session and clears the `admin_session` cookie.
+  - **Response (200):** `{ success: true, message: "Logged out successfully" }`
 
 ### 2. Main Profile Information (`/api/maininfo`)
 - **File:** [src/app/api/maininfo/route.js](file:///home/leon/Portfolio/src/app/api/maininfo/route.js)

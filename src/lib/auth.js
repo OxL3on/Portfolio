@@ -8,9 +8,28 @@ import path from 'path';
 const SECRET_FILE = path.join(process.cwd(), 'src/data/.session_secret');
 
 function getServerSecret() {
-  if (process.env.SESSION_SECRET && process.env.SESSION_SECRET.length >= 32) {
-    return process.env.SESSION_SECRET;
+  const envSecret = process.env.SESSION_SECRET || process.env.ADMIN_SESSION_SECRET;
+  if (envSecret) {
+    if (envSecret.length < 32) {
+      const msg = 'FATAL CONFIGURATION ERROR: SESSION_SECRET must be at least 32 characters long.';
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(msg);
+      }
+      console.error(msg);
+    } else {
+      return envSecret;
+    }
   }
+
+  // In production, an explicit, distributed SESSION_SECRET is strictly required
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'FATAL CONFIGURATION ERROR: SESSION_SECRET environment variable is missing in production. ' +
+      'A persistent secret of at least 32 characters must be provided across all application instances.'
+    );
+  }
+
+  // Development and local testing: use persistent local secret file (mode 0600)
   try {
     if (fs.existsSync(SECRET_FILE)) {
       const existing = fs.readFileSync(SECRET_FILE, 'utf-8').trim();
@@ -22,11 +41,11 @@ function getServerSecret() {
     fs.writeFileSync(SECRET_FILE, newSecret, { mode: 0o600 });
     return newSecret;
   } catch (err) {
-    // Fallback in-memory
-    if (!global.__portfolio_server_secret) {
-      global.__portfolio_server_secret = crypto.randomBytes(32).toString('hex');
+    // In restricted test environments, preserve a single secret per Node process
+    if (!globalThis.__portfolio_dev_secret) {
+      globalThis.__portfolio_dev_secret = crypto.randomBytes(32).toString('hex');
     }
-    return global.__portfolio_server_secret;
+    return globalThis.__portfolio_dev_secret;
   }
 }
 
@@ -109,7 +128,9 @@ function savePersistentSessions(map) {
     }
     const dir = path.dirname(SESSIONS_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(SESSIONS_FILE, JSON.stringify(obj, null, 2), { mode: 0o600 });
+    const tempFile = `${SESSIONS_FILE}.${process.pid}.${Date.now()}.tmp`;
+    fs.writeFileSync(tempFile, JSON.stringify(obj, null, 2), { mode: 0o600 });
+    fs.renameSync(tempFile, SESSIONS_FILE);
   } catch (e) {}
 }
 
