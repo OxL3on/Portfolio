@@ -283,26 +283,26 @@ export default function DashboardBlogsPage() {
         <div className="flex flex-wrap gap-2 pt-1">
           {categories.map((cat) => {
             const count = data.filter(b => (b.category || b.platform || '').toLowerCase().trim() === cat.toLowerCase().trim()).length;
-            const isProtected = ['TryHackMe', 'Hack The Box', 'CTF Writeups', 'Security Research'].includes(cat);
 
             return (
               <span
                 key={cat}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-background border border-gray-800 text-xs font-medium text-gray-300"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-background border border-gray-800 text-xs font-medium text-gray-200"
               >
                 <span className="font-semibold">{cat}</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-primary/10 text-primary font-mono">
-                  {count}
-                </span>
-                {!isProtected && count === 0 && (
-                  <button
-                    onClick={() => handleDeleteCategory(cat)}
-                    className="text-gray-500 hover:text-rose-400 p-0.5 ml-1 transition-colors"
-                    title={`Delete category "${cat}"`}
-                  >
-                    <X size={12} />
-                  </button>
+                {count > 0 && (
+                  <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-primary/10 text-primary font-mono">
+                    {count}
+                  </span>
                 )}
+                <button
+                  type="button"
+                  onClick={() => handleDeleteCategory(cat)}
+                  className="text-gray-500 hover:text-rose-400 p-0.5 ml-1 transition-colors"
+                  title={`Delete category "${cat}"`}
+                >
+                  <X size={12} />
+                </button>
               </span>
             );
           })}

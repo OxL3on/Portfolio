@@ -226,31 +226,21 @@ export default function BlogPage() {
 
   const blogs = (blogsData && blogsData.length > 0) ? blogsData : [];
 
-  // Fetch configured categories from backend API and combine with any categories present in blogs
+  // Fetch configured categories from backend API
   useEffect(() => {
     fetch('/api/blog-categories')
       .then(res => res.json())
       .then(cats => {
-        const set = new Set(Array.isArray(cats) && cats.length > 0 ? cats : DEFAULT_CATEGORIES);
-        // Include any categories present in loaded blogs
-        blogs.forEach(b => {
-          if (b.category && typeof b.category === 'string' && b.category.trim()) {
-            set.add(b.category.trim());
-          }
-          if (b.platform && typeof b.platform === 'string' && b.platform.trim()) {
-            set.add(b.platform.trim());
-          }
-        });
-        setCategoriesList(Array.from(set));
+        if (Array.isArray(cats) && cats.length > 0) {
+          setCategoriesList(cats);
+        } else {
+          setCategoriesList(DEFAULT_CATEGORIES);
+        }
       })
       .catch(() => {
-        const set = new Set(DEFAULT_CATEGORIES);
-        blogs.forEach(b => {
-          if (b.category && typeof b.category === 'string' && b.category.trim()) set.add(b.category.trim());
-        });
-        setCategoriesList(Array.from(set));
+        setCategoriesList(DEFAULT_CATEGORIES);
       });
-  }, [blogs.length]);
+  }, []);
 
   // Grouping helper matching blogs to a specific category
   const getBlogsForCategory = (categoryId) => {

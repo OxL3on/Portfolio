@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Trash2, Plus, Edit2, Save, Award, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Trash2, Plus, Edit2, Save, Award, ExternalLink, ShieldCheck, Upload } from 'lucide-react';
 
 export default function DashboardCertificationsPage() {
   const [data, setData] = useState([]);
@@ -16,6 +16,33 @@ export default function DashboardCertificationsPage() {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSaveStatus(`Uploading ${file.name}...`);
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+    uploadData.append('targetType', 'general');
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadData
+      });
+      const resData = await res.json();
+      if (res.ok && resData.url) {
+        setFormData(prev => ({ ...prev, image: resData.url }));
+        setSaveStatus(`Uploaded ${file.name} successfully!`);
+        setTimeout(() => setSaveStatus(''), 3000);
+      } else {
+        setSaveStatus(`Upload failed: ${resData.error || 'Server error'}`);
+      }
+    } catch (err) {
+      setSaveStatus('Failed to upload image from computer.');
+    }
+  };
 
   const fetchData = () => {
     setLoading(true);
@@ -181,15 +208,57 @@ export default function DashboardCertificationsPage() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-foreground/80 ml-1">Certificate Image URL (Preview Banner)</label>
-            <input
-              type="text"
-              value={formData.image}
-              onChange={e => setFormData({ ...formData, image: e.target.value })}
-              className="w-full bg-background/60 border border-gray-700/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary text-sm font-mono"
-              placeholder="https://... or /cert.png (Optional)"
-            />
+          <div className="space-y-2 md:col-span-2">
+            <div className="flex items-center justify-between ml-1">
+              <label className="block text-sm font-semibold text-foreground/80">Certificate Image (Preview Banner)</label>
+              <label className="cursor-pointer px-3.5 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition-all">
+                <Upload size={13} /> Upload from Computer
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+              </label>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={formData.image}
+                onChange={e => setFormData({ ...formData, image: e.target.value })}
+                className="w-full bg-background/60 border border-gray-700/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary text-sm font-mono"
+                placeholder="Paste image URL (https://...) or click 'Upload from Computer' above"
+              />
+              {formData.image && (
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                  className="px-4 py-2 text-xs text-rose-400 hover:bg-rose-500/10 border border-rose-500/30 rounded-2xl transition-colors shrink-0"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            {formData.image && (
+              <div className="relative w-full h-40 bg-gray-950 rounded-2xl overflow-hidden border border-gray-800 flex items-center justify-center mt-2">
+                <img
+                  src={formData.image}
+                  alt="Certificate Preview"
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const errEl = e.currentTarget.parentElement?.querySelector('.cert-dashboard-error');
+                    if (errEl) errEl.classList.remove('hidden');
+                  }}
+                />
+                <div className="cert-dashboard-error hidden flex-col items-center justify-center text-xs text-amber-400 p-4 text-center">
+                  <p className="font-bold">Image failed to load</p>
+                  <p className="text-[11px] text-gray-400 mt-1">This external link might be blocked or private (403 Forbidden). Use "Upload from Computer" to store it reliably!</p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2 md:col-span-2">
@@ -252,6 +321,7 @@ export default function DashboardCertificationsPage() {
                   <img
                     src={item.image}
                     alt={item.title}
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (

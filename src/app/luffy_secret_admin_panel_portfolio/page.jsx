@@ -26,7 +26,8 @@ import {
   RefreshCw,
   Sliders,
   KeyRound,
-  Layers
+  Layers,
+  X
 } from 'lucide-react';
 
 export default function SecretAdminPortal() {
@@ -201,6 +202,35 @@ export default function SecretAdminPortal() {
       }
     } catch (err) {
       notifyError('Failed to upload file');
+    }
+  };
+
+  // Certificate image upload helper
+  const handleCertFileUpload = async (e, certIdx) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('targetType', 'general');
+
+    notifySuccess(`Uploading ${file.name}...`);
+    try {
+      const res = await authFetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        const updated = [...certifications];
+        updated[certIdx].image = data.url;
+        setCertifications(updated);
+        notifySuccess(`Uploaded ${file.name} successfully! Remember to click "Save All Certifications".`);
+      } else {
+        notifyError(data.error || 'Upload failed');
+      }
+    } catch (err) {
+      notifyError('Failed to upload image from computer');
     }
   };
 
@@ -1098,13 +1128,36 @@ export default function SecretAdminPortal() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {blogCategories.map(cat => (
                     <span
                       key={cat}
-                      className="text-[11px] px-2.5 py-1 rounded-lg bg-card border border-gray-800 text-gray-300 font-medium"
+                      className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl bg-card border border-gray-800 text-gray-200 font-medium group"
                     >
-                      {cat}
+                      <span>{cat}</span>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!confirm(`Are you sure you want to delete the category "${cat}"? This will remove it from available categories.`)) return;
+                          try {
+                            const res = await authFetch(`/api/blog-categories?category=${encodeURIComponent(cat)}`, {
+                              method: 'DELETE'
+                            });
+                            if (res.ok) {
+                              setBlogCategories(prev => prev.filter(c => c.toLowerCase() !== cat.toLowerCase()));
+                              notifySuccess(`Category "${cat}" removed successfully!`);
+                            } else {
+                              notifyError(`Failed to remove category "${cat}"`);
+                            }
+                          } catch (err) {
+                            notifyError('Error removing category');
+                          }
+                        }}
+                        className="text-gray-500 hover:text-rose-400 p-0.5 rounded transition-colors ml-0.5"
+                        title={`Delete category "${cat}"`}
+                      >
+                        <X size={13} />
+                      </button>
                     </span>
                   ))}
                 </div>
@@ -1513,19 +1566,68 @@ export default function SecretAdminPortal() {
                           className="w-full bg-background border border-gray-700 rounded-lg p-2 text-xs font-mono"
                         />
                       </div>
-                      <div className="sm:col-span-2">
-                        <label className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Certificate Image URL (Preview Banner)</label>
-                        <input
-                          type="text"
-                          value={cert.image || ''}
-                          onChange={(e) => {
-                            const updated = [...certifications];
-                            updated[idx].image = e.target.value;
-                            setCertifications(updated);
-                          }}
-                          placeholder="https://... or /cert.png"
-                          className="w-full bg-background border border-gray-700 rounded-lg p-2 text-xs font-mono"
-                        />
+                      <div className="sm:col-span-2 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] text-gray-400 uppercase font-bold">
+                            Certificate Image (Preview Banner)
+                          </label>
+                          <label className="cursor-pointer px-3 py-1 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-all">
+                            <Upload size={12} /> Upload from Computer
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleCertFileUpload(e, idx)}
+                            />
+                          </label>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={cert.image || ''}
+                            onChange={(e) => {
+                              const updated = [...certifications];
+                              updated[idx].image = e.target.value;
+                              setCertifications(updated);
+                            }}
+                            placeholder="Paste external image link (e.g. https://...) or upload image above"
+                            className="w-full bg-background border border-gray-700 rounded-lg p-2 text-xs font-mono"
+                          />
+                          {cert.image && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = [...certifications];
+                                updated[idx].image = '';
+                                setCertifications(updated);
+                              }}
+                              className="px-2.5 py-1 text-xs text-rose-400 hover:bg-rose-500/10 border border-rose-500/30 rounded-lg transition-colors shrink-0"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+
+                        {cert.image && (
+                          <div className="relative w-full h-36 bg-gray-950 rounded-xl overflow-hidden border border-gray-700 flex items-center justify-center">
+                            <img
+                              src={cert.image}
+                              alt="Certificate Preview"
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const errEl = e.currentTarget.parentElement?.querySelector('.cert-load-error');
+                                if (errEl) errEl.classList.remove('hidden');
+                              }}
+                            />
+                            <div className="cert-load-error hidden flex-col items-center justify-center text-xs text-amber-400 p-3 text-center">
+                              <p className="font-bold">Image failed to load</p>
+                              <p className="text-[10px] text-gray-400 mt-0.5">The external link might be private or blocked (403 Forbidden). Click "Upload from Computer" above to upload your certificate directly!</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

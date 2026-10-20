@@ -51,26 +51,31 @@ const defaultCertifications = [
   }
 ];
 
-const CertificationCard = ({ cert }) => (
-  <div className="group relative bg-background/40 backdrop-blur-sm border border-gray-800 rounded-2xl overflow-hidden transition-all duration-500 hover:border-primary/40 hover:shadow-2xl flex flex-col h-full">
-    {/* Upper Half: Certificate Image Preview */}
-    <div className="relative h-48 sm:h-52 w-full overflow-hidden border-b border-gray-800 bg-gray-950 flex items-center justify-center">
-      {cert.image ? (
-        <img
-          src={cert.image}
-          alt={cert.title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
-      ) : (
-        <div className="relative w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-gray-950 to-background text-gray-500 p-5 text-center">
-          <div className="absolute inset-0 bg-[radial-gradient(#3b82f615_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
-          <div className="p-3.5 rounded-2xl bg-primary/10 text-primary border border-primary/20 mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-primary/5">
-            <Award size={30} />
+const CertificationCard = ({ cert }) => {
+  const [imgFailed, setImgFailed] = useState(false);
+
+  return (
+    <div className="group relative bg-background/40 backdrop-blur-sm border border-gray-800 rounded-2xl overflow-hidden transition-all duration-500 hover:border-primary/40 hover:shadow-2xl flex flex-col h-full">
+      {/* Upper Half: Certificate Image Preview */}
+      <div className="relative h-48 sm:h-52 w-full overflow-hidden border-b border-gray-800 bg-gray-950 flex items-center justify-center">
+        {cert.image && !imgFailed ? (
+          <img
+            src={cert.image}
+            alt={cert.title}
+            referrerPolicy="no-referrer"
+            onError={() => setImgFailed(true)}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+        ) : (
+          <div className="relative w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-gray-950 to-background text-gray-500 p-5 text-center">
+            <div className="absolute inset-0 bg-[radial-gradient(#3b82f615_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+            <div className="p-3.5 rounded-2xl bg-primary/10 text-primary border border-primary/20 mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-primary/5">
+              <Award size={30} />
+            </div>
+            <span className="text-xs font-bold text-gray-300 tracking-wide">{cert.issuer}</span>
+            <span className="text-[10px] text-gray-500 font-mono uppercase tracking-wider mt-0.5">Verified Certificate</span>
           </div>
-          <span className="text-xs font-bold text-gray-300 tracking-wide">{cert.issuer}</span>
-          <span className="text-[10px] text-gray-500 font-mono uppercase tracking-wider mt-0.5">Verified Certificate</span>
-        </div>
-      )}
+        )}
 
       {/* Hover action overlay */}
       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
@@ -133,7 +138,8 @@ const CertificationCard = ({ cert }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default function CertificationsPage() {
   const [search, setSearch] = useState('');
