@@ -11,41 +11,12 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import Image from 'next/image';
 
 const ProjectCard = ({ project }) => (
-  <div className="group relative bg-background/40 backdrop-blur-sm border border-gray-800 rounded-2xl overflow-hidden transition-all duration-500 hover:border-primary/40 hover:shadow-2xl flex flex-col h-full">
-    {/* Project Image */}
-    <div className="relative h-48 w-full overflow-hidden border-b border-gray-800 bg-gray-900 flex items-center justify-center">
-      {project.image ? (
-        <Image
-          src={project.image}
-          alt={project.title}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-      ) : (
-        <span className="text-gray-600 font-mono text-xs">No Image Available</span>
-      )}
-      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-        {project.github && project.github !== '#' && (
-          <a
-            href={project.github}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-3 bg-background rounded-full text-foreground hover:bg-primary hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0 duration-300"
-            title="View on GitHub"
-          >
-            <Github size={20} />
-          </a>
-        )}
-      </div>
-    </div>
-
-    {/* Project Info */}
-    <div className="p-6 flex flex-col grow space-y-4">
-      <div className="flex justify-between items-center">
-        <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2.5 py-1 rounded-md">
+  <div className="group relative bg-background/40 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 hover:border-primary/40 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full justify-between">
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2.5 py-1 rounded-md border border-primary/20">
           {project.type}
         </span>
         <span className="text-[10px] font-mono text-gray-500">
@@ -53,34 +24,44 @@ const ProjectCard = ({ project }) => (
         </span>
       </div>
 
-      <div className="grow">
-        <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors leading-tight">
-          {project.title}
-        </h3>
-        <p className="text-sm text-gray-400 leading-relaxed line-clamp-3">
-          {project.description}
-        </p>
-      </div>
+      <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors leading-tight">
+        {project.title}
+      </h3>
+      <p className="text-sm text-gray-400 leading-relaxed line-clamp-4">
+        {project.description}
+      </p>
+    </div>
 
-      <div className="pt-4 border-t border-gray-800/60 mt-auto flex items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
-          {(project.tags || project.tech || []).map((t, idx) => (
-            <span
-              key={idx}
-              className="text-[10px] font-bold text-gray-500 bg-gray-900 px-2 py-1 rounded-md border border-gray-800"
-            >
-              {t}
-            </span>
-          ))}
-        </div>
+    <div className="pt-5 border-t border-gray-800/60 mt-6 flex items-center justify-between gap-3">
+      <div className="flex flex-wrap gap-2">
+        {(project.tags || project.tech || []).map((t, idx) => (
+          <span
+            key={idx}
+            className="text-[10px] font-bold text-gray-400 bg-gray-900/80 px-2.5 py-1 rounded-md border border-gray-800"
+          >
+            {t}
+          </span>
+        ))}
+      </div>
+      <div className="flex items-center gap-3 shrink-0">
         {project.github && project.github !== '#' && (
           <a
             href={project.github}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-primary font-semibold flex items-center gap-1.5 hover:underline shrink-0"
+            className="text-xs text-primary font-semibold flex items-center gap-1.5 hover:underline transition-colors"
           >
             <Github size={13} /> Source
+          </a>
+        )}
+        {project.live && project.live !== '#' && (
+          <a
+            href={project.live}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-primary font-semibold flex items-center gap-1.5 hover:underline transition-colors"
+          >
+            <Globe size={13} /> Live
           </a>
         )}
       </div>

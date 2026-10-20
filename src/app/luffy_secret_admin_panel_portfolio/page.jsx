@@ -51,6 +51,15 @@ export default function SecretAdminPortal() {
   const [certifications, setCertifications] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [contact, setContact] = useState([]);
+  const [blogCategories, setBlogCategories] = useState([
+    'TryHackMe',
+    'Hack The Box',
+    'CTF Writeups',
+    'Security Research',
+    'VulnHub',
+    'Root me'
+  ]);
+  const [newCatInput, setNewCatInput] = useState('');
 
   // Sub-forms / Modals
   const [editingItem, setEditingItem] = useState(null);
@@ -118,7 +127,7 @@ export default function SecretAdminPortal() {
 
   const fetchAllData = async () => {
     try {
-      const [m, e, s, p, b, c, a, ct] = await Promise.all([
+      const [m, e, s, p, b, c, a, ct, cats] = await Promise.all([
         fetch('/api/maininfo').then(r => r.json()),
         fetch('/api/education').then(r => r.json()),
         fetch('/api/skills').then(r => r.json()),
@@ -126,7 +135,8 @@ export default function SecretAdminPortal() {
         fetch('/api/blogs').then(r => r.json()),
         fetch('/api/certifications').then(r => r.json()),
         fetch('/api/achievements').then(r => r.json()),
-        fetch('/api/contact').then(r => r.json())
+        fetch('/api/contact').then(r => r.json()),
+        fetch('/api/blog-categories').then(r => r.json()).catch(() => [])
       ]);
 
       setMainInfo(m || {});
@@ -137,6 +147,9 @@ export default function SecretAdminPortal() {
       setCertifications(Array.isArray(c) ? c : []);
       setAchievements(Array.isArray(a) ? a : []);
       setContact(Array.isArray(ct) ? ct : []);
+      if (Array.isArray(cats) && cats.length > 0) {
+        setBlogCategories(cats);
+      }
     } catch (err) {
       console.error('Failed to load portfolio data:', err);
     }
@@ -1044,6 +1057,59 @@ export default function SecretAdminPortal() {
                 </button>
               </div>
 
+              {/* Category Management Bar */}
+              <div className="bg-background/40 border border-gray-800 p-4 rounded-2xl space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <span className="text-xs font-bold text-gray-300">
+                    Categories ({blogCategories.length}):
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={newCatInput}
+                      onChange={(e) => setNewCatInput(e.target.value)}
+                      placeholder="New category (e.g. VulnHub, Root me)"
+                      className="bg-background border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary w-48 sm:w-56"
+                    />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const trimmed = newCatInput.trim();
+                        if (!trimmed) return;
+                        try {
+                          const res = await authFetch('/api/blog-categories', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: trimmed })
+                          });
+                          if (res.ok) {
+                            setBlogCategories(prev => Array.from(new Set([...prev, trimmed])));
+                            setNewCatInput('');
+                            notifySuccess(`Category "${trimmed}" added!`);
+                          }
+                        } catch (err) {
+                          notifyError('Failed to add category');
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                    >
+                      <Plus size={12} /> Add Category
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  {blogCategories.map(cat => (
+                    <span
+                      key={cat}
+                      className="text-[11px] px-2.5 py-1 rounded-lg bg-card border border-gray-800 text-gray-300 font-medium"
+                    >
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
               <div className="space-y-6">
                 {blogs.map((b, idx) => (
                   <div key={idx} className="bg-card border border-gray-800 p-6 rounded-2xl space-y-4">
@@ -1090,7 +1156,9 @@ export default function SecretAdminPortal() {
                         <label className="text-[10px] text-gray-400 uppercase font-bold block mb-1">
                           Platform / Category
                         </label>
-                        <select
+                        <input
+                          list={`luffy-categories-${idx}`}
+                          type="text"
                           value={b.category || b.platform || 'TryHackMe'}
                           onChange={(e) => {
                             const updated = [...blogs];
@@ -1098,13 +1166,14 @@ export default function SecretAdminPortal() {
                             updated[idx].platform = e.target.value;
                             setBlogs(updated);
                           }}
+                          placeholder="Select or type category..."
                           className="w-full bg-background border border-gray-700 rounded-lg p-2 text-xs font-bold text-primary"
-                        >
-                          <option value="TryHackMe">TryHackMe</option>
-                          <option value="Hack The Box">Hack The Box</option>
-                          <option value="CTF Writeups">CTF Writeups</option>
-                          <option value="Security Research">Technical &amp; Security Research</option>
-                        </select>
+                        />
+                        <datalist id={`luffy-categories-${idx}`}>
+                          {blogCategories.map(c => (
+                            <option key={c} value={c} />
+                          ))}
+                        </datalist>
                       </div>
                       <div>
                         <label className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Date</label>
@@ -1354,7 +1423,8 @@ export default function SecretAdminPortal() {
                         issuer: 'CompTIA / INE / OffSec',
                         issueDate: '2024',
                         credentialId: 'CERT-123456',
-                        verifyUrl: 'https://verify.com'
+                        verifyUrl: 'https://verify.com',
+                        image: ''
                       },
                       ...certifications
                     ]);
@@ -1440,6 +1510,20 @@ export default function SecretAdminPortal() {
                             updated[idx].verifyUrl = e.target.value;
                             setCertifications(updated);
                           }}
+                          className="w-full bg-background border border-gray-700 rounded-lg p-2 text-xs font-mono"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-[10px] text-gray-400 uppercase font-bold block mb-1">Certificate Image URL (Preview Banner)</label>
+                        <input
+                          type="text"
+                          value={cert.image || ''}
+                          onChange={(e) => {
+                            const updated = [...certifications];
+                            updated[idx].image = e.target.value;
+                            setCertifications(updated);
+                          }}
+                          placeholder="https://... or /cert.png"
                           className="w-full bg-background border border-gray-700 rounded-lg p-2 text-xs font-mono"
                         />
                       </div>

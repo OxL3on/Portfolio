@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import PageLoader from '@/components/shared/PageLoader';
 import { useSharedData } from '@/hooks/useSharedData';
-import { Award, ExternalLink, CheckCircle2, ShieldCheck, Search } from 'lucide-react';
+import { Award, ExternalLink, ShieldCheck, Search } from 'lucide-react';
 
 const defaultCertifications = [
   {
@@ -11,6 +11,7 @@ const defaultCertifications = [
     issueDate: "2024",
     credentialId: "INE-EJPT-849201",
     verifyUrl: "https://ine.com",
+    image: "",
     skills: ["Network Pentesting", "Web App Pentesting", "Host & Network Auditing"],
     badge: "Active",
     description: "Hands-on assessment covering vulnerability analysis, network assessment, web application security, and system exploitation."
@@ -21,6 +22,7 @@ const defaultCertifications = [
     issueDate: "2024",
     credentialId: "COMP001029482",
     verifyUrl: "https://www.comptia.org",
+    image: "",
     skills: ["Threats & Vulnerabilities", "Security Operations", "Network Architecture"],
     badge: "Certified",
     description: "Demonstrates core security knowledge in threat management, hybrid environment security, and network defenses."
@@ -31,6 +33,7 @@ const defaultCertifications = [
     issueDate: "2024",
     credentialId: "ECC-CEHP-19283",
     verifyUrl: "https://www.eccouncil.org",
+    image: "",
     skills: ["Ethical Hacking", "Malware Analysis", "Penetration Testing"],
     badge: "Certified",
     description: "Rigorous practical exam demonstrating ethical hacking techniques, packet analysis, and system vulnerability exploitation."
@@ -41,6 +44,7 @@ const defaultCertifications = [
     issueDate: "2023",
     credentialId: "THM-CERT-294819",
     verifyUrl: "https://tryhackme.com",
+    image: "",
     skills: ["Linux Fundamentals", "Networking", "Web App Security", "Privilege Escalation"],
     badge: "Completed",
     description: "Comprehensive path covering web exploitation, Linux privilege escalation, network auditing, and Active Directory security."
@@ -48,41 +52,85 @@ const defaultCertifications = [
 ];
 
 const CertificationCard = ({ cert }) => (
-  <div className="bg-background/40 backdrop-blur-sm border border-gray-800 p-6 rounded-2xl hover:border-primary/40 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group flex flex-col h-full">
-    <div className="mb-4">
-      <div className="flex items-center gap-2">
-        <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/20 group-hover:scale-105 transition-transform">
-          <ShieldCheck size={20} />
+  <div className="group relative bg-background/40 backdrop-blur-sm border border-gray-800 rounded-2xl overflow-hidden transition-all duration-500 hover:border-primary/40 hover:shadow-2xl flex flex-col h-full">
+    {/* Upper Half: Certificate Image Preview */}
+    <div className="relative h-48 sm:h-52 w-full overflow-hidden border-b border-gray-800 bg-gray-950 flex items-center justify-center">
+      {cert.image ? (
+        <img
+          src={cert.image}
+          alt={cert.title}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+      ) : (
+        <div className="relative w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-gray-950 to-background text-gray-500 p-5 text-center">
+          <div className="absolute inset-0 bg-[radial-gradient(#3b82f615_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
+          <div className="p-3.5 rounded-2xl bg-primary/10 text-primary border border-primary/20 mb-2 group-hover:scale-110 transition-transform shadow-lg shadow-primary/5">
+            <Award size={30} />
+          </div>
+          <span className="text-xs font-bold text-gray-300 tracking-wide">{cert.issuer}</span>
+          <span className="text-[10px] text-gray-500 font-mono uppercase tracking-wider mt-0.5">Verified Certificate</span>
         </div>
-        <div>
-          <span className="text-xs font-bold text-primary tracking-wide">
-            {cert.issuer}
-          </span>
-          <p className="text-[11px] text-gray-500 font-medium">
-            Issued {cert.issueDate}
-          </p>
-        </div>
+      )}
+
+      {/* Hover action overlay */}
+      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
+        {cert.verifyUrl && cert.verifyUrl !== '#' && (
+          <a
+            href={cert.verifyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-3 bg-background/90 rounded-full text-foreground hover:bg-primary hover:text-white transition-all transform translate-y-3 group-hover:translate-y-0 duration-300 shadow-xl border border-gray-700 hover:border-primary"
+            title="Verify Certificate"
+          >
+            <ExternalLink size={18} />
+          </a>
+        )}
       </div>
     </div>
 
-    <h3 className="text-lg font-bold text-gray-100 mb-2 group-hover:text-primary transition-colors">
-      {cert.title}
-    </h3>
+    {/* Bottom Half: Info as it is */}
+    <div className="p-6 flex flex-col grow justify-between space-y-4">
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20 group-hover:scale-105 transition-transform">
+            <ShieldCheck size={18} />
+          </div>
+          <div>
+            <span className="text-xs font-bold text-primary tracking-wide">
+              {cert.issuer}
+            </span>
+            <p className="text-[11px] text-gray-500 font-medium">
+              Issued {cert.issueDate}
+            </p>
+          </div>
+        </div>
 
-    <div className="mt-auto pt-4 border-t border-gray-800/60 flex items-center justify-between text-xs">
-      <span className="text-gray-500 font-mono text-[11px]">
-        ID: {cert.credentialId || "N/A"}
-      </span>
-      {cert.verifyUrl && cert.verifyUrl !== '#' && (
-        <a
-          href={cert.verifyUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary hover:underline font-semibold flex items-center gap-1.5 transition-colors"
-        >
-          Verify <ExternalLink size={12} />
-        </a>
-      )}
+        <h3 className="text-base sm:text-lg font-bold text-gray-100 group-hover:text-primary transition-colors leading-snug">
+          {cert.title}
+        </h3>
+
+        {cert.description && (
+          <p className="text-xs text-gray-400 mt-2 line-clamp-2 leading-relaxed">
+            {cert.description}
+          </p>
+        )}
+      </div>
+
+      <div className="pt-4 border-t border-gray-800/60 mt-auto flex items-center justify-between text-xs">
+        <span className="text-gray-500 font-mono text-[11px]">
+          ID: {cert.credentialId || "N/A"}
+        </span>
+        {cert.verifyUrl && cert.verifyUrl !== '#' && (
+          <a
+            href={cert.verifyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline font-semibold flex items-center gap-1.5 transition-colors"
+          >
+            Verify <ExternalLink size={12} />
+          </a>
+        )}
+      </div>
     </div>
   </div>
 );
@@ -97,8 +145,8 @@ export default function CertificationsPage() {
   const certs = (certsData && certsData.length > 0) ? certsData : defaultCertifications;
 
   const filteredCerts = certs.filter(c =>
-    c.title.toLowerCase().includes(search.toLowerCase()) ||
-    c.issuer.toLowerCase().includes(search.toLowerCase()) ||
+    (c.title && c.title.toLowerCase().includes(search.toLowerCase())) ||
+    (c.issuer && c.issuer.toLowerCase().includes(search.toLowerCase())) ||
     (c.skills && c.skills.some(s => s.toLowerCase().includes(search.toLowerCase())))
   );
 
@@ -108,7 +156,7 @@ export default function CertificationsPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <span className="text-primary text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-              <Award size={16} /> Credentials & Verification
+              <Award size={16} /> Credentials &amp; Verification
             </span>
             <h1 className="text-4xl md:text-5xl font-extrabold text-foreground mt-4 mb-4 tracking-tight">
               Certifications
@@ -137,7 +185,7 @@ export default function CertificationsPage() {
         ) : filteredCerts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             {filteredCerts.map((cert, index) => (
-              <CertificationCard key={index} cert={cert} />
+              <CertificationCard key={cert.id || index} cert={cert} />
             ))}
           </div>
         ) : (

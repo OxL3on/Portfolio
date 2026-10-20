@@ -1,19 +1,26 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Trash2, Plus, Edit2, Save, BookOpen, ExternalLink, Github, CheckCircle2 } from 'lucide-react';
+import { Trash2, Plus, Edit2, Save, BookOpen, ExternalLink, Github, CheckCircle2, Tag, Layers, X } from 'lucide-react';
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   'TryHackMe',
   'Hack The Box',
   'CTF Writeups',
-  'Security Research'
+  'Security Research',
+  'VulnHub',
+  'Root me'
 ];
 
 export default function DashboardBlogsPage() {
   const [data, setData] = useState([]);
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [newCatInput, setNewCatInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategoryText, setCustomCategoryText] = useState('');
 
   const initialForm = {
     title: '',
@@ -30,12 +37,26 @@ export default function DashboardBlogsPage() {
 
   const [formData, setFormData] = useState(initialForm);
 
+  const fetchCategories = () => {
+    fetch('/api/blog-categories')
+      .then(res => res.json())
+      .then(cats => {
+        if (Array.isArray(cats) && cats.length > 0) {
+          setCategories(cats);
+        }
+      })
+      .catch(() => {});
+  };
+
   const fetchData = () => {
     setLoading(true);
     fetch('/api/blogs')
       .then(res => res.json())
       .then(d => {
-        setData(Array.isArray(d) ? d : []);
+        const blogList = Array.isArray(d) ? d : [];
+        setData(blogList);
+        // Also combine any categories present in blogs
+        fetchCategories();
         setLoading(false);
       })
       .catch(() => {
@@ -62,13 +83,73 @@ export default function DashboardBlogsPage() {
     }
   };
 
+  const handleAddCategory = async (e) => {
+    e?.preventDefault();
+    const trimmed = newCatInput.trim();
+    if (!trimmed) return;
+
+    try {
+      const res = await fetch('/api/blog-categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed })
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        if (result.result && Array.isArray(result.result)) {
+          setCategories(result.result);
+        } else {
+          setCategories(prev => Array.from(new Set([...prev, trimmed])));
+        }
+        setNewCatInput('');
+        setSaveStatus(`Category "${trimmed}" added successfully!`);
+        setTimeout(() => setSaveStatus(''), 3000);
+      } else {
+        const err = await res.json();
+        setSaveStatus(`Failed to add category: ${err.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      setSaveStatus('Failed to add category.');
+    }
+  };
+
+  const handleDeleteCategory = async (categoryToDelete) => {
+    if (!confirm(`Are you sure you want to remove the category "${categoryToDelete}"?`)) return;
+
+    try {
+      const res = await fetch(`/api/blog-categories?category=${encodeURIComponent(categoryToDelete)}`, {
+        method: 'DELETE'
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        if (result.result && Array.isArray(result.result)) {
+          setCategories(result.result);
+        } else {
+          setCategories(prev => prev.filter(c => c !== categoryToDelete));
+        }
+        setSaveStatus(`Category "${categoryToDelete}" removed.`);
+        setTimeout(() => setSaveStatus(''), 3000);
+      }
+    } catch (err) {
+      setSaveStatus('Failed to remove category.');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaveStatus('Saving writeup...');
     const method = isEditing ? 'PUT' : 'POST';
 
+    const chosenCategory = isCustomCategory
+      ? (customCategoryText.trim() || 'TryHackMe')
+      : formData.category;
+
     const payload = {
       ...formData,
+      category: chosenCategory,
+      platform: chosenCategory,
       github: formData.github.trim(),
       medium: formData.medium.trim()
     };
@@ -81,8 +162,19 @@ export default function DashboardBlogsPage() {
       });
 
       if (res.ok) {
+        // If a new custom category was used, ensure it is saved into blog-categories
+        if (isCustomCategory && customCategoryText.trim()) {
+          await fetch('/api/blog-categories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: customCategoryText.trim() })
+          }).catch(() => {});
+        }
+
         setFormData(initialForm);
         setIsEditing(false);
+        setIsCustomCategory(false);
+        setCustomCategoryText('');
         setSaveStatus('Writeup saved successfully!');
         setTimeout(() => setSaveStatus(''), 3000);
         fetchData();
@@ -104,12 +196,13 @@ export default function DashboardBlogsPage() {
   };
 
   const handleEdit = (item) => {
+    const itemCat = item.category || item.platform || 'TryHackMe';
     setFormData({
       id: item.id || '',
       title: item.title || '',
       slug: item.slug || '',
-      category: item.category || item.platform || 'TryHackMe',
-      platform: item.platform || item.category || 'TryHackMe',
+      category: itemCat,
+      platform: itemCat,
       date: item.date || '',
       readTime: item.readTime || '',
       author: item.author || 'MD Leon Islam',
@@ -117,26 +210,39 @@ export default function DashboardBlogsPage() {
       medium: item.medium || '',
       content: item.content || ''
     });
+
+    if (!categories.includes(itemCat)) {
+      setCategories(prev => [...prev, itemCat]);
+    }
+    setIsCustomCategory(false);
+    setCustomCategoryText('');
     setIsEditing(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading) {
-    return <div className="text-foreground/50 animate-pulse py-10">Loading Writeups &amp; Blogs...</div>;
+    return <div className="text-foreground/50 animate-pulse py-10">Loading Writeups &amp; Categories...</div>;
   }
 
   const hasGithub = Boolean(formData.github && formData.github.trim());
   const hasMedium = Boolean(formData.medium && formData.medium.trim());
+
+  // Filtered writeups by category filter
+  const filteredWriteups = data.filter(item => {
+    if (selectedFilter === 'all') return true;
+    const cat = (item.category || item.platform || '').toLowerCase().trim();
+    return cat === selectedFilter.toLowerCase().trim();
+  });
 
   return (
     <div className="animate-in slide-in-from-bottom-4 duration-500 pb-16">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60 w-fit">
-            Manage Writeups &amp; Blogs
+            Manage Writeups &amp; Categories
           </h1>
           <p className="text-sm text-foreground/50 mt-2">
-            Publish walkthroughs and choose where readers can access them (website only, GitHub, Medium, or both).
+            Publish walkthroughs across customizable platforms like TryHackMe, Hack The Box, VulnHub, Root me, or any custom category.
           </p>
         </div>
         {saveStatus && (
@@ -144,6 +250,63 @@ export default function DashboardBlogsPage() {
             {saveStatus}
           </span>
         )}
+      </div>
+
+      {/* Category Management Bar */}
+      <div className="mb-8 bg-card/40 backdrop-blur-sm p-5 sm:p-6 rounded-3xl border border-gray-800 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800/80 pb-4">
+          <div className="flex items-center gap-2">
+            <Tag size={16} className="text-primary" />
+            <h2 className="text-sm font-bold text-foreground">Blog Categories Manager</h2>
+            <span className="text-xs text-gray-500 font-mono">({categories.length} total)</span>
+          </div>
+
+          {/* Add Category Form */}
+          <form onSubmit={handleAddCategory} className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newCatInput}
+              onChange={e => setNewCatInput(e.target.value)}
+              placeholder="e.g. VulnHub or Root me"
+              className="bg-background border border-gray-700/60 rounded-xl px-3.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary w-48 sm:w-56"
+            />
+            <button
+              type="submit"
+              className="px-3.5 py-1.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-bold flex items-center gap-1 transition-all"
+            >
+              <Plus size={13} /> Add Category
+            </button>
+          </form>
+        </div>
+
+        {/* Existing Categories Badges */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          {categories.map((cat) => {
+            const count = data.filter(b => (b.category || b.platform || '').toLowerCase().trim() === cat.toLowerCase().trim()).length;
+            const isProtected = ['TryHackMe', 'Hack The Box', 'CTF Writeups', 'Security Research'].includes(cat);
+
+            return (
+              <span
+                key={cat}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-background border border-gray-800 text-xs font-medium text-gray-300"
+              >
+                <span className="font-semibold">{cat}</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-primary/10 text-primary font-mono">
+                  {count}
+                </span>
+                {!isProtected && count === 0 && (
+                  <button
+                    onClick={() => handleDeleteCategory(cat)}
+                    className="text-gray-500 hover:text-rose-400 p-0.5 ml-1 transition-colors"
+                    title={`Delete category "${cat}"`}
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </span>
+            );
+          })}
+        </div>
       </div>
 
       {/* Editor Form */}
@@ -184,17 +347,51 @@ export default function DashboardBlogsPage() {
             />
           </div>
 
+          {/* Category Selector with Custom Category Support */}
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-foreground/80 ml-1">Platform / Category</label>
-            <select
-              value={formData.category}
-              onChange={e => setFormData({ ...formData, category: e.target.value, platform: e.target.value })}
-              className="w-full bg-background/60 border border-gray-700/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary text-sm text-primary font-bold"
-            >
-              {CATEGORIES.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+            <div className="flex items-center justify-between ml-1">
+              <label className="block text-sm font-semibold text-foreground/80">Platform / Category</label>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCustomCategory(!isCustomCategory);
+                  if (!isCustomCategory) {
+                    setCustomCategoryText('');
+                  }
+                }}
+                className="text-xs text-primary hover:underline font-semibold"
+              >
+                {isCustomCategory ? '← Choose Existing' : '+ Type Custom'}
+              </button>
+            </div>
+
+            {isCustomCategory ? (
+              <input
+                type="text"
+                value={customCategoryText}
+                onChange={e => setCustomCategoryText(e.target.value)}
+                placeholder="Type new category (e.g. VulnHub or Root me)..."
+                required
+                className="w-full bg-background border border-primary/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary text-sm text-primary font-bold"
+              />
+            ) : (
+              <select
+                value={formData.category}
+                onChange={e => {
+                  if (e.target.value === '__add_custom__') {
+                    setIsCustomCategory(true);
+                  } else {
+                    setFormData({ ...formData, category: e.target.value, platform: e.target.value });
+                  }
+                }}
+                className="w-full bg-background/60 border border-gray-700/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary text-sm text-primary font-bold"
+              >
+                {categories.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+                <option value="__add_custom__">+ Add Custom Category...</option>
+              </select>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -349,29 +546,6 @@ export default function DashboardBlogsPage() {
               />
             </div>
           </div>
-
-          {/* Destination Preview indicator */}
-          <div className="flex items-center gap-2 text-xs text-gray-400 pt-1">
-            <span className="text-gray-500">Live reader destinations:</span>
-            <span className="px-2.5 py-1 rounded-lg bg-gray-800 text-gray-300 font-mono text-[11px]">
-              🌐 Website (Always Included)
-            </span>
-            {hasGithub && (
-              <span className="px-2.5 py-1 rounded-lg bg-primary/20 text-primary border border-primary/30 font-mono text-[11px]">
-                🐙 GitHub
-              </span>
-            )}
-            {hasMedium && (
-              <span className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono text-[11px]">
-                ✍️ Medium
-              </span>
-            )}
-            {!hasGithub && !hasMedium && (
-              <span className="text-gray-500 text-[11px] italic">
-                (Exclusive to website — no external links shown)
-              </span>
-            )}
-          </div>
         </div>
 
         {/* Markdown Content */}
@@ -406,6 +580,8 @@ export default function DashboardBlogsPage() {
               type="button"
               onClick={() => {
                 setIsEditing(false);
+                setIsCustomCategory(false);
+                setCustomCategoryText('');
                 setFormData(initialForm);
               }}
               className="px-8 py-3.5 text-white bg-gray-800 rounded-2xl hover:bg-gray-700 font-medium transition-colors"
@@ -417,13 +593,46 @@ export default function DashboardBlogsPage() {
       </form>
 
       {/* Published Writeups List */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold text-foreground">
-          Existing Writeups ({data.length})
-        </h2>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h2 className="text-xl font-bold text-foreground">
+            Existing Writeups ({filteredWriteups.length})
+          </h2>
+
+          {/* Filter Pills */}
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              onClick={() => setSelectedFilter('all')}
+              className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all ${
+                selectedFilter === 'all'
+                  ? 'bg-primary text-white'
+                  : 'bg-card border border-gray-800 text-gray-400 hover:text-foreground'
+              }`}
+            >
+              All ({data.length})
+            </button>
+            {categories.map(c => {
+              const cCount = data.filter(b => (b.category || b.platform || '').toLowerCase().trim() === c.toLowerCase().trim()).length;
+              if (cCount === 0) return null;
+              return (
+                <button
+                  key={c}
+                  onClick={() => setSelectedFilter(c)}
+                  className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all ${
+                    selectedFilter.toLowerCase() === c.toLowerCase()
+                      ? 'bg-primary text-white'
+                      : 'bg-card border border-gray-800 text-gray-400 hover:text-foreground'
+                  }`}
+                >
+                  {c} ({cCount})
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {data.map((item, idx) => {
+          {filteredWriteups.map((item, idx) => {
             const itemGithub = Boolean(item.github && item.github.trim());
             const itemMedium = Boolean(item.medium && item.medium.trim());
 
@@ -494,9 +703,9 @@ export default function DashboardBlogsPage() {
             );
           })}
 
-          {data.length === 0 && (
+          {filteredWriteups.length === 0 && (
             <p className="text-foreground/50 col-span-full text-center py-10 bg-card/20 rounded-3xl border border-dashed border-gray-800">
-              No writeups found. Create your first writeup above!
+              No writeups found for this category. Create one above!
             </p>
           )}
         </div>

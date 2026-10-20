@@ -158,7 +158,8 @@
       "issuer": "CompTIA / INE / OffSec",
       "issueDate": "2024",
       "credentialId": "CERT-123456",
-      "verifyUrl": "https://verify.com"
+      "verifyUrl": "https://verify.com",
+      "image": ""
     },
     {
       "id": "cert-1",
@@ -166,7 +167,8 @@
       "issuer": "INE Security",
       "issueDate": "2024",
       "credentialId": "INE-EJPT-849201",
-      "verifyUrl": "https://ine.com"
+      "verifyUrl": "https://ine.com",
+      "image": ""
     },
     {
       "id": "cert-2",
@@ -174,7 +176,8 @@
       "issuer": "CompTIA",
       "issueDate": "2024",
       "credentialId": "COMP001029482",
-      "verifyUrl": "https://www.comptia.org"
+      "verifyUrl": "https://www.comptia.org",
+      "image": ""
     },
     {
       "id": "cert-3",
@@ -182,7 +185,8 @@
       "issuer": "EC-Council",
       "issueDate": "2024",
       "credentialId": "ECC-CEHP-19283",
-      "verifyUrl": "https://www.eccouncil.org"
+      "verifyUrl": "https://www.eccouncil.org",
+      "image": ""
     },
     {
       "id": "cert-4",
@@ -190,7 +194,8 @@
       "issuer": "TryHackMe",
       "issueDate": "2023",
       "credentialId": "THM-CERT-294819",
-      "verifyUrl": "https://tryhackme.com"
+      "verifyUrl": "https://tryhackme.com",
+      "image": ""
     }
   ],
   "achievements": [
@@ -444,5 +449,13 @@
       "medium": "https://medium.com/@OxL3on",
       "content": "# My Reconnaissance Methodology for Bug Bounty Hunting\n\nIn bug bounty programs with wide scopes (`*.target.com`), quality reconnaissance accounts for over 80% of finding novel bugs before other hunters.\n\n---\n\n## 1. Asset Discovery Pipeline\n\n1. **Subdomain Enumeration**:\n   - Passive sources: Certificate Transparency logs (crt.sh), VirusTotal, SecurityTrails.\n   - Active brute-forcing with `shuffledns` or `massdns`.\n\n2. **Port Probing & Service Discovery**:\n   ```bash\n   # Probe alive HTTP/HTTPS services\n   cat subdomains.txt | httpx -silent -title -status-code -tech-detect\n   ```\n\n3. **JavaScript Endpoint Analysis**:\n   - Extract hidden API routes and token leaks using `katana` and `gau`.\n"
     }
+  ],
+  "blogCategories": [
+    "TryHackMe",
+    "Hack The Box",
+    "CTF Writeups",
+    "Security Research",
+    "VulnHub",
+    "Root me"
   ]
 }

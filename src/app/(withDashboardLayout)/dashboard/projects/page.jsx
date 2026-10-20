@@ -78,8 +78,8 @@ export default function ProjectsPage() {
              <input type="text" value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full bg-background/60 border border-gray-700/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary" placeholder="e.g. Full-Stack Web App" />
            </div>
            <div className="space-y-2">
-             <label className="block text-sm font-semibold text-foreground/80 ml-1">Image URL</label>
-             <input type="text" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full bg-background/60 border border-gray-700/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary" required placeholder="https://..." />
+             <label className="block text-sm font-semibold text-foreground/80 ml-1">Image URL (Optional)</label>
+             <input type="text" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full bg-background/60 border border-gray-700/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary" placeholder="https://... (Optional)" />
            </div>
            <div className="space-y-2">
              <label className="block text-sm font-semibold text-foreground/80 ml-1">Date</label>
@@ -114,23 +114,23 @@ export default function ProjectsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
          {data.map(item => (
-           <div key={item.title} className="bg-card/40 backdrop-blur-sm rounded-3xl border border-gray-800/60 hover:border-gray-700 hover:bg-card/60 transition-all group overflow-hidden flex flex-col">
-             <div className="h-48 w-full relative bg-gray-800 overflow-hidden">
-               {item.image && <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
-               <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
-               <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                 <button onClick={() => handleEdit(item)} className="p-2 bg-blue-500 text-white rounded-xl shadow-lg hover:scale-105 transition-transform"><Edit2 size={16} /></button>
-                 <button onClick={() => handleDelete(item.title)} className="p-2 bg-red-500 text-white rounded-xl shadow-lg hover:scale-105 transition-transform"><Trash2 size={16} /></button>
+           <div key={item.title} className="bg-card/40 backdrop-blur-sm rounded-3xl border border-gray-800/60 hover:border-gray-700 hover:bg-card/60 transition-all group overflow-hidden flex flex-col p-6 justify-between">
+             <div>
+               <div className="flex items-center justify-between mb-2">
+                 <span className="text-xs text-primary font-bold px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+                   {item.type}
+                 </span>
+                 <div className="flex gap-2">
+                   <button onClick={() => handleEdit(item)} className="p-1.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors"><Edit2 size={15} /></button>
+                   <button onClick={() => handleDelete(item.title)} className="p-1.5 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg transition-colors"><Trash2 size={15} /></button>
+                 </div>
                </div>
+               <h3 className="font-bold text-xl text-foreground mt-2">{item.title}</h3>
+               <p className="text-sm text-foreground/70 mt-3 line-clamp-3 leading-relaxed">{item.description}</p>
              </div>
-             <div className="p-6 flex-1 flex flex-col">
-               <h3 className="font-bold text-xl text-foreground">{item.title}</h3>
-               <p className="text-xs text-primary font-medium mt-1">{item.type}</p>
-               <p className="text-sm text-foreground/70 mt-3 line-clamp-2 flex-1">{item.description}</p>
-               <div className="flex flex-wrap gap-2 mt-4">
-                 {(item.tags||[]).slice(0,3).map(t => <span key={t} className="text-[10px] px-2 py-1 bg-gray-800 rounded-lg text-gray-300">{t}</span>)}
-                 {(item.tags||[]).length > 3 && <span className="text-[10px] px-2 py-1 bg-gray-800 rounded-lg text-gray-400">+{item.tags.length - 3} more</span>}
-               </div>
+             <div className="flex flex-wrap gap-2 mt-5 pt-4 border-t border-gray-800/60">
+               {(item.tags||[]).slice(0,3).map(t => <span key={t} className="text-[10px] px-2.5 py-1 bg-gray-900 border border-gray-800 rounded-lg text-gray-300 font-mono">{t}</span>)}
+               {(item.tags||[]).length > 3 && <span className="text-[10px] px-2.5 py-1 bg-gray-900 border border-gray-800 rounded-lg text-gray-400 font-mono">+{item.tags.length - 3} more</span>}
              </div>
            </div>
          ))}

@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { auth, signOut } from '@/lib/firebase';
-import { LogOut, LayoutDashboard, User, Code2, GraduationCap, Briefcase, Award, FolderGit2, Mail, BookOpen } from 'lucide-react';
+import { LogOut, LayoutDashboard, User, Code2, GraduationCap, Briefcase, Award, FolderGit2, Mail, BookOpen, ShieldCheck } from 'lucide-react';
 
 const menuItems = [
   { path: '/dashboard', name: 'Overview', icon: LayoutDashboard },
@@ -10,6 +10,7 @@ const menuItems = [
   { path: '/dashboard/skills', name: 'Skills', icon: Code2 },
   { path: '/dashboard/education', name: 'Education', icon: GraduationCap },
   { path: '/dashboard/experience', name: 'Experience', icon: Briefcase },
+  { path: '/dashboard/certifications', name: 'Certifications', icon: ShieldCheck },
   { path: '/dashboard/achievements', name: 'Achievements', icon: Award },
   { path: '/dashboard/projects', name: 'Projects', icon: FolderGit2 },
   { path: '/dashboard/blogs', name: 'Writeups / Blogs', icon: BookOpen },

@@ -9,7 +9,8 @@ export const defaultCertifications = [
     issuer: "INE Security",
     issueDate: "2024",
     credentialId: "INE-EJPT-849201",
-    verifyUrl: "https://ine.com"
+    verifyUrl: "https://ine.com",
+    image: ""
   },
   {
     id: "cert-2",
@@ -17,7 +18,8 @@ export const defaultCertifications = [
     issuer: "CompTIA",
     issueDate: "2024",
     credentialId: "COMP001029482",
-    verifyUrl: "https://www.comptia.org"
+    verifyUrl: "https://www.comptia.org",
+    image: ""
   },
   {
     id: "cert-3",
@@ -25,7 +27,8 @@ export const defaultCertifications = [
     issuer: "EC-Council",
     issueDate: "2024",
     credentialId: "ECC-CEHP-19283",
-    verifyUrl: "https://www.eccouncil.org"
+    verifyUrl: "https://www.eccouncil.org",
+    image: ""
   },
   {
     id: "cert-4",
@@ -33,7 +36,8 @@ export const defaultCertifications = [
     issuer: "TryHackMe",
     issueDate: "2023",
     credentialId: "THM-CERT-294819",
-    verifyUrl: "https://tryhackme.com"
+    verifyUrl: "https://tryhackme.com",
+    image: ""
   }
 ];
 
