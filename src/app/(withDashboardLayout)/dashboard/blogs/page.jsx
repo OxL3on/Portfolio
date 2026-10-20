@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Trash2, Plus, Edit2, Save, BookOpen, ExternalLink, Github, CheckCircle2, Tag, Layers, X, Check } from 'lucide-react';
+import { Trash2, Plus, Edit2, Save, BookOpen, ExternalLink, Github, CheckCircle2, Tag, Layers, X, Check, Star } from 'lucide-react';
 
 const DEFAULT_CATEGORIES = [
   'TryHackMe',
@@ -33,7 +33,8 @@ export default function DashboardBlogsPage() {
     author: 'MD Leon Islam',
     github: '',
     medium: '',
-    content: ''
+    content: '',
+    featured: false
   };
 
   const [formData, setFormData] = useState(initialForm);
@@ -248,6 +249,20 @@ export default function DashboardBlogsPage() {
     fetchData();
   };
 
+  
+  const handleToggleFeatured = async (item) => {
+    const updatedFeatured = !item.featured;
+    try {
+      await fetch('/api/blogs', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ ...item, featured: updatedFeatured })
+      });
+      setData(prev => prev.map(b => (b.slug === item.slug ? { ...b, featured: updatedFeatured } : b)));
+    } catch (e) {}
+  };
+
   const handleEdit = (item) => {
     const itemCat = item.category || item.platform || 'TryHackMe';
     setFormData({
@@ -261,7 +276,8 @@ export default function DashboardBlogsPage() {
       author: item.author || 'MD Leon Islam',
       github: item.github || '',
       medium: item.medium || '',
-      content: item.content || ''
+      content: item.content || '',
+      featured: Boolean(item.featured)
     });
 
     if (!categories.includes(itemCat)) {
@@ -756,6 +772,19 @@ export default function DashboardBlogsPage() {
                       {item.category || item.platform || 'Writeup'}
                     </span>
                     <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleFeatured(item)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                          item.featured
+                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
+                            : "bg-gray-800/80 text-gray-400 hover:text-gray-200"
+                        }`}
+                        title={item.featured ? "Featured on Home (Click to unfeature)" : "Click to feature on Home page"}
+                      >
+                        <Star size={13} className={item.featured ? "fill-amber-400 text-amber-400" : "text-gray-400"} />
+                        <span className="hidden sm:inline">{item.featured ? "Featured" : "Feature"}</span>
+                      </button>
                       <button
                         onClick={() => handleEdit(item)}
                         className="p-1.5 text-gray-400 hover:text-primary transition-colors"

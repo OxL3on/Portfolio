@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Trash2, Plus, Edit2, Save } from 'lucide-react';
+import { Trash2, Plus, Edit2, Save, Star } from 'lucide-react';
 import Image from 'next/image';
 
 export default function ProjectsPage() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({ title: '', image: '', type: '', date: '', description: '', tags: '', github: '', live: '' });
+  const [formData, setFormData] = useState({ title: '', image: '', type: '', date: '', description: '', tags: '', github: '', live: '', featured: false });
   const [isEditing, setIsEditing] = useState(false);
 
   const fetchData = () => {
@@ -19,6 +19,19 @@ export default function ProjectsPage() {
 
   useEffect(() => { fetchData(); }, []);
 
+  const handleToggleFeatured = async (item) => {
+    const updatedFeatured = !item.featured;
+    try {
+      await fetch('/api/projects', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ ...item, featured: updatedFeatured })
+      });
+      setData(prev => prev.map(p => (p.title === item.title ? { ...p, featured: updatedFeatured } : p)));
+    } catch (e) {}
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const method = isEditing ? 'PUT' : 'POST';
@@ -29,16 +42,17 @@ export default function ProjectsPage() {
     await fetch('/api/projects', {
       method,
       headers: {'Content-Type': 'application/json'},
+      credentials: 'same-origin',
       body: JSON.stringify({ ...formData, tags: tagsArray })
     });
-    setFormData({ title: '', image: '', type: '', date: '', description: '', tags: '', github: '', live: '' });
+    setFormData({ title: '', image: '', type: '', date: '', description: '', tags: '', github: '', live: '', featured: false });
     setIsEditing(false);
     fetchData();
   };
 
   const handleDelete = async (title) => {
     if(!confirm('Delete this project?')) return;
-    await fetch(`/api/projects?title=${encodeURIComponent(title)}`, { method: 'DELETE' });
+    await fetch(`/api/projects?title=${encodeURIComponent(title)}`, { method: 'DELETE', credentials: 'same-origin' });
     fetchData();
   };
 
@@ -52,7 +66,8 @@ export default function ProjectsPage() {
        description: item.description || '', 
        tags: tagsStr, 
        github: item.github || '', 
-       live: item.live || '' 
+       live: item.live || '',
+       featured: Boolean(item.featured)
     });
     setIsEditing(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -100,6 +115,20 @@ export default function ProjectsPage() {
            <div className="space-y-2">
              <label className="block text-sm font-semibold text-foreground/80 ml-1">Live Link</label>
              <input type="text" value={formData.live} onChange={e => setFormData({...formData, live: e.target.value})} className="w-full bg-background/60 border border-gray-700/50 rounded-2xl px-5 py-3 focus:outline-none focus:border-primary" placeholder="https://..." />
+           </div>
+           <div className="md:col-span-2 pt-2">
+             <label className="inline-flex items-center gap-2.5 cursor-pointer bg-background/50 border border-gray-800 hover:border-gray-700 px-4 py-2.5 rounded-2xl transition-all">
+               <input
+                 type="checkbox"
+                 checked={Boolean(formData.featured)}
+                 onChange={e => setFormData({ ...formData, featured: e.target.checked })}
+                 className="rounded border-gray-700 bg-background text-primary focus:ring-primary h-4 w-4"
+               />
+               <span className="text-sm font-semibold text-foreground/80 flex items-center gap-1.5">
+                 <Star size={14} className={formData.featured ? "fill-amber-400 text-amber-400" : "text-gray-400"} />
+                 Feature this project on the Home Page
+               </span>
+             </label>
            </div>
          </div>
          <div className="flex flex-col lg:flex-row gap-4 pt-4 border-t border-gray-800">

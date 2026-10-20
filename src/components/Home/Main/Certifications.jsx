@@ -29,7 +29,10 @@ const Certifications = () => {
     return await res.json();
   });
 
-  const certs = (certsData && certsData.length > 0) ? certsData.slice(0, 2) : defaultCertifications;
+  const featuredCerts = (certsData || []).filter(c => c.featured === true || c.isFeatured === true);
+  const certs = (featuredCerts.length > 0)
+    ? featuredCerts.slice(0, 2)
+    : ((certsData && certsData.length > 0) ? certsData.slice(0, 2) : defaultCertifications);
 
   return (
     <section className="bg-card/90 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-gray-800 shadow-2xl transition-all duration-300">

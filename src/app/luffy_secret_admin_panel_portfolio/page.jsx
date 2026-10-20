@@ -27,6 +27,7 @@ import {
   Sliders,
   KeyRound,
   Layers,
+  Star,
   X
 } from 'lucide-react';
 
@@ -953,7 +954,27 @@ export default function SecretAdminPortal() {
                 {projects.map((proj, idx) => (
                   <div key={idx} className="bg-card border border-gray-800 p-5 rounded-2xl space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-primary font-mono">Project #{idx + 1}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-primary font-mono">Project #{idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...projects];
+                            updated[idx] = { ...updated[idx], featured: !updated[idx].featured };
+                            setProjects(updated);
+                            notifySuccess(updated[idx].featured ? `"${proj.title}" selected as Featured on Home!` : `"${proj.title}" removed from Featured`);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                            proj.featured
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm'
+                              : 'bg-background text-gray-400 border border-gray-700/60 hover:text-gray-200'
+                          }`}
+                          title={proj.featured ? 'Featured on Home (Click to unfeature)' : 'Click to feature on Home page'}
+                        >
+                          <Star size={12} className={proj.featured ? 'fill-amber-400 text-amber-400' : 'text-gray-400'} />
+                          <span>{proj.featured ? '★ Featured on Home' : 'Feature on Home'}</span>
+                        </button>
+                      </div>
                       <button
                         onClick={() => setProjects(projects.filter((_, i) => i !== idx))}
                         className="text-rose-400 hover:text-rose-300 p-1 text-xs"
@@ -1348,9 +1369,29 @@ export default function SecretAdminPortal() {
                 {blogs.map((b, idx) => (
                   <div key={idx} className="bg-card border border-gray-800 p-6 rounded-2xl space-y-4">
                     <div className="flex items-center justify-between border-b border-gray-800/60 pb-3">
-                      <span className="text-xs font-bold text-primary font-mono">
-                        Writeup #{idx + 1} • {b.category || b.platform}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-primary font-mono">
+                          Writeup #{idx + 1} • {b.category || b.platform}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...blogs];
+                            updated[idx] = { ...updated[idx], featured: !updated[idx].featured };
+                            setBlogs(updated);
+                            notifySuccess(updated[idx].featured ? `"${b.title}" selected as Featured on Home!` : `"${b.title}" removed from Featured`);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                            b.featured
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm'
+                              : 'bg-background text-gray-400 border border-gray-700/60 hover:text-gray-200'
+                          }`}
+                          title={b.featured ? 'Featured on Home (Click to unfeature)' : 'Click to feature on Home page'}
+                        >
+                          <Star size={12} className={b.featured ? 'fill-amber-400 text-amber-400' : 'text-gray-400'} />
+                          <span>{b.featured ? '★ Featured on Home' : 'Feature on Home'}</span>
+                        </button>
+                      </div>
                       <button
                         onClick={() => setBlogs(blogs.filter((_, i) => i !== idx))}
                         className="text-rose-400 hover:text-rose-300 p-1 text-xs"
@@ -1673,7 +1714,27 @@ export default function SecretAdminPortal() {
                 {certifications.map((cert, idx) => (
                   <div key={idx} className="bg-card border border-gray-800 p-5 rounded-2xl space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-primary font-mono">Certification #{idx + 1}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-primary font-mono">Certification #{idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...certifications];
+                            updated[idx] = { ...updated[idx], featured: !updated[idx].featured };
+                            setCertifications(updated);
+                            notifySuccess(updated[idx].featured ? `"${cert.title}" selected as Featured on Home!` : `"${cert.title}" removed from Featured`);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                            cert.featured
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm'
+                              : 'bg-background text-gray-400 border border-gray-700/60 hover:text-gray-200'
+                          }`}
+                          title={cert.featured ? 'Featured on Home (Click to unfeature)' : 'Click to feature on Home page'}
+                        >
+                          <Star size={12} className={cert.featured ? 'fill-amber-400 text-amber-400' : 'text-gray-400'} />
+                          <span>{cert.featured ? '★ Featured on Home' : 'Feature on Home'}</span>
+                        </button>
+                      </div>
                       <button
                         onClick={() => setCertifications(certifications.filter((_, i) => i !== idx))}
                         className="text-rose-400 hover:text-rose-300 p-1 text-xs"
@@ -1859,7 +1920,27 @@ export default function SecretAdminPortal() {
                 {achievements.map((ach, idx) => (
                   <div key={idx} className="bg-card border border-gray-800 p-5 rounded-2xl space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-primary font-mono">Achievement #{idx + 1}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-primary font-mono">Achievement #{idx + 1}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...achievements];
+                            updated[idx] = { ...updated[idx], featured: !updated[idx].featured };
+                            setAchievements(updated);
+                            notifySuccess(updated[idx].featured ? `"${ach.title}" selected as Featured on Home!` : `"${ach.title}" removed from Featured`);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
+                            ach.featured
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm'
+                              : 'bg-background text-gray-400 border border-gray-700/60 hover:text-gray-200'
+                          }`}
+                          title={ach.featured ? 'Featured on Home (Click to unfeature)' : 'Click to feature on Home page'}
+                        >
+                          <Star size={12} className={ach.featured ? 'fill-amber-400 text-amber-400' : 'text-gray-400'} />
+                          <span>{ach.featured ? '★ Featured on Home' : 'Feature on Home'}</span>
+                        </button>
+                      </div>
                       <button
                         onClick={() => setAchievements(achievements.filter((_, i) => i !== idx))}
                         className="text-rose-400 hover:text-rose-300 p-1 text-xs"

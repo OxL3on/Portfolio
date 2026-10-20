@@ -31,9 +31,10 @@ const Projects = () => {
     return data || [];
   });
   
-  const projectsData = (fullProjects && fullProjects.length > 0)
-    ? fullProjects.slice(0, 2)
-    : defaultProjects;
+  const featuredProjects = (fullProjects || []).filter(p => p.featured === true || p.isFeatured === true);
+  const projectsData = (featuredProjects.length > 0)
+    ? featuredProjects.slice(0, 2)
+    : ((fullProjects && fullProjects.length > 0) ? fullProjects.slice(0, 2) : defaultProjects);
 
   return (
     <section className="bg-card/90 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-gray-800 shadow-2xl transition-all duration-300">

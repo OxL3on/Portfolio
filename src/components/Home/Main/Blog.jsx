@@ -37,7 +37,10 @@ const Blog = () => {
     return await res.json();
   });
 
-  const blogs = (blogsData && blogsData.length > 0) ? blogsData.slice(0, 2) : defaultBlogs;
+  const featuredBlogs = (blogsData || []).filter(b => b.featured === true || b.isFeatured === true);
+  const blogs = (featuredBlogs.length > 0)
+    ? featuredBlogs.slice(0, 2)
+    : ((blogsData && blogsData.length > 0) ? blogsData.slice(0, 2) : defaultBlogs);
 
   return (
     <section className="bg-card/90 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-gray-800 shadow-2xl transition-all duration-300">

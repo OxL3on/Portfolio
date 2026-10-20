@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Trash2, Plus, Edit2, Save, Award, ExternalLink, ShieldCheck, Upload } from 'lucide-react';
+import { Trash2, Plus, Edit2, Save, Award, ExternalLink, ShieldCheck, Upload, Star } from 'lucide-react';
 
 export default function DashboardCertificationsPage() {
   const [data, setData] = useState([]);
@@ -12,7 +12,8 @@ export default function DashboardCertificationsPage() {
     credentialId: '',
     verifyUrl: '',
     image: '',
-    description: ''
+    description: '',
+    featured: false
   });
   const [isEditing, setIsEditing] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
@@ -103,6 +104,20 @@ export default function DashboardCertificationsPage() {
     fetchData();
   };
 
+  
+  const handleToggleFeatured = async (item) => {
+    const updatedFeatured = !item.featured;
+    try {
+      await fetch('/api/certifications', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ ...item, featured: updatedFeatured })
+      });
+      setData(prev => prev.map(c => (c.title === item.title ? { ...c, featured: updatedFeatured } : c)));
+    } catch (e) {}
+  };
+
   const handleEdit = (item) => {
     setFormData({
       id: item.id || '',
@@ -112,7 +127,8 @@ export default function DashboardCertificationsPage() {
       credentialId: item.credentialId || '',
       verifyUrl: item.verifyUrl || '',
       image: item.image || '',
-      description: item.description || ''
+      description: item.description || '',
+      featured: Boolean(item.featured)
     });
     setIsEditing(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -357,6 +373,19 @@ export default function DashboardCertificationsPage() {
                     <span className="text-xs font-bold text-primary">{item.issuer}</span>
                     <span className="text-gray-600">•</span>
                     <span className="text-xs text-gray-400 font-mono">{item.issueDate}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleFeatured(item)}
+                      className={`px-2 py-0.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-all ml-auto ${
+                        item.featured
+                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
+                          : "bg-gray-800/80 text-gray-400 hover:text-gray-200"
+                      }`}
+                      title={item.featured ? "Featured on Home (Click to unfeature)" : "Click to feature on Home page"}
+                    >
+                      <Star size={12} className={item.featured ? "fill-amber-400 text-amber-400" : "text-gray-400"} />
+                      <span>{item.featured ? "Featured" : "Feature"}</span>
+                    </button>
                   </div>
                   <h3 className="font-bold text-lg text-foreground leading-snug">{item.title}</h3>
                   {item.description && (

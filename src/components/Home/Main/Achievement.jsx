@@ -29,7 +29,10 @@ const Achievement = () => {
     }
   ];
   
-  const achievementsData = (fullachievements && fullachievements.length > 0) ? fullachievements.slice(0, 2) : defaultAchievements;
+  const featuredAchievements = (fullachievements || []).filter(a => a.featured === true || a.isFeatured === true);
+  const achievementsData = (featuredAchievements.length > 0)
+    ? featuredAchievements.slice(0, 2)
+    : ((fullachievements && fullachievements.length > 0) ? fullachievements.slice(0, 2) : defaultAchievements);
 
   return (
     <section className="bg-card/90 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-gray-800 shadow-2xl">
