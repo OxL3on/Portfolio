@@ -33,15 +33,21 @@ export async function POST(req) {
 
     const body = await req.json();
     const current = await getCollectionData("blogCategories", defaultBlogCategories);
-    const categorySet = new Set(Array.isArray(current) && current.length > 0 ? current : defaultBlogCategories);
+    const cleanCurrent = (Array.isArray(current) && current.length > 0 ? current : defaultBlogCategories)
+      .map(c => (typeof c === 'string' ? c.trim() : c?.name ? c.name.trim() : ''))
+      .filter(Boolean);
+
+    const categorySet = new Set(cleanCurrent);
 
     if (Array.isArray(body)) {
       body.forEach(cat => {
-        if (typeof cat === 'string' && cat.trim()) categorySet.add(cat.trim());
+        const val = typeof cat === 'string' ? cat.trim() : cat?.name ? cat.name.trim() : '';
+        if (val) categorySet.add(val);
       });
     } else if (body.categories && Array.isArray(body.categories)) {
       body.categories.forEach(cat => {
-        if (typeof cat === 'string' && cat.trim()) categorySet.add(cat.trim());
+        const val = typeof cat === 'string' ? cat.trim() : cat?.name ? cat.name.trim() : '';
+        if (val) categorySet.add(val);
       });
     } else {
       const newCategory = (body.name || body.category || '').trim();
@@ -82,29 +88,35 @@ export async function DELETE(req) {
 
     const target = category.trim().toLowerCase();
     const current = await getCollectionData("blogCategories", defaultBlogCategories);
-    const updated = (Array.isArray(current) ? current : defaultBlogCategories).filter(
-      c => c.trim().toLowerCase() !== target
-    );
+    const cleanCurrent = (Array.isArray(current) && current.length > 0 ? current : defaultBlogCategories)
+      .map(c => (typeof c === 'string' ? c.trim() : c?.name ? c.name.trim() : ''))
+      .filter(Boolean);
+
+    const updated = cleanCurrent.filter(c => c.toLowerCase() !== target);
 
     await saveCollectionData("blogCategories", updated);
 
     // Also harmonize any blogs that had this category so they don't break
-    const blogs = await getCollectionData("blogs", []);
-    if (Array.isArray(blogs) && blogs.length > 0) {
-      let blogsChanged = false;
-      blogs.forEach(b => {
-        if (b.platform && b.platform.trim().toLowerCase() === target) {
-          b.platform = b.category || 'Security Research';
-          blogsChanged = true;
+    try {
+      const blogs = await getCollectionData("blogs", []);
+      if (Array.isArray(blogs) && blogs.length > 0) {
+        let blogsChanged = false;
+        blogs.forEach(b => {
+          if (b.platform && b.platform.trim().toLowerCase() === target) {
+            b.platform = b.category || 'Security Research';
+            blogsChanged = true;
+          }
+          if (b.category && b.category.trim().toLowerCase() === target) {
+            b.category = 'Security Research';
+            blogsChanged = true;
+          }
+        });
+        if (blogsChanged) {
+          await saveCollectionData("blogs", blogs);
         }
-        if (b.category && b.category.trim().toLowerCase() === target) {
-          b.category = 'Security Research';
-          blogsChanged = true;
-        }
-      });
-      if (blogsChanged) {
-        await saveCollectionData("blogs", blogs);
       }
+    } catch (err) {
+      console.warn("Harmonizing blogs after category delete warning:", err);
     }
 
     return NextResponse.json({ success: true, result: updated });

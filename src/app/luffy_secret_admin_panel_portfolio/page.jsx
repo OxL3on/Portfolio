@@ -1098,6 +1098,33 @@ export default function SecretAdminPortal() {
                       type="text"
                       value={newCatInput}
                       onChange={(e) => setNewCatInput(e.target.value)}
+                      onKeyDown={async (e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const trimmed = newCatInput.trim();
+                          if (!trimmed) return;
+                          try {
+                            const res = await authFetch('/api/blog-categories', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ name: trimmed })
+                            });
+                            const data = await res.json().catch(() => ({}));
+                            if (res.ok) {
+                              const updatedList = Array.isArray(data.result)
+                                ? data.result
+                                : Array.from(new Set([...blogCategories, trimmed]));
+                              setBlogCategories(updatedList);
+                              setNewCatInput('');
+                              notifySuccess(`Category "${trimmed}" added!`);
+                            } else {
+                              notifyError(data.error || 'Failed to add category');
+                            }
+                          } catch (err) {
+                            notifyError('Failed to add category');
+                          }
+                        }
+                      }}
                       placeholder="New category (e.g. VulnHub, Root me)"
                       className="bg-background border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary w-48 sm:w-56"
                     />
@@ -1112,10 +1139,16 @@ export default function SecretAdminPortal() {
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ name: trimmed })
                           });
+                          const data = await res.json().catch(() => ({}));
                           if (res.ok) {
-                            setBlogCategories(prev => Array.from(new Set([...prev, trimmed])));
+                            const updatedList = Array.isArray(data.result)
+                              ? data.result
+                              : Array.from(new Set([...blogCategories, trimmed]));
+                            setBlogCategories(updatedList);
                             setNewCatInput('');
                             notifySuccess(`Category "${trimmed}" added!`);
+                          } else {
+                            notifyError(data.error || 'Failed to add category');
                           }
                         } catch (err) {
                           notifyError('Failed to add category');
@@ -1143,11 +1176,15 @@ export default function SecretAdminPortal() {
                             const res = await authFetch(`/api/blog-categories?category=${encodeURIComponent(cat)}`, {
                               method: 'DELETE'
                             });
+                            const data = await res.json().catch(() => ({}));
                             if (res.ok) {
-                              setBlogCategories(prev => prev.filter(c => c.toLowerCase() !== cat.toLowerCase()));
+                              const updatedList = Array.isArray(data.result)
+                                ? data.result
+                                : blogCategories.filter(c => c.toLowerCase() !== cat.toLowerCase());
+                              setBlogCategories(updatedList);
                               notifySuccess(`Category "${cat}" removed successfully!`);
                             } else {
-                              notifyError(`Failed to remove category "${cat}"`);
+                              notifyError(data.error || `Failed to remove category "${cat}"`);
                             }
                           } catch (err) {
                             notifyError('Error removing category');

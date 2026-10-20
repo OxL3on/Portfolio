@@ -92,11 +92,12 @@ export default function DashboardBlogsPage() {
       const res = await fetch('/api/blog-categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ name: trimmed })
       });
 
+      const result = await res.json().catch(() => ({}));
       if (res.ok) {
-        const result = await res.json();
         if (result.result && Array.isArray(result.result)) {
           setCategories(result.result);
         } else {
@@ -106,8 +107,7 @@ export default function DashboardBlogsPage() {
         setSaveStatus(`Category "${trimmed}" added successfully!`);
         setTimeout(() => setSaveStatus(''), 3000);
       } else {
-        const err = await res.json();
-        setSaveStatus(`Failed to add category: ${err.error || 'Unknown error'}`);
+        setSaveStatus(`Failed to add category: ${result.error || 'Unknown error'}`);
       }
     } catch (err) {
       setSaveStatus('Failed to add category.');
@@ -119,11 +119,12 @@ export default function DashboardBlogsPage() {
 
     try {
       const res = await fetch(`/api/blog-categories?category=${encodeURIComponent(categoryToDelete)}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'same-origin'
       });
 
+      const result = await res.json().catch(() => ({}));
       if (res.ok) {
-        const result = await res.json();
         if (result.result && Array.isArray(result.result)) {
           setCategories(result.result);
         } else {
@@ -131,6 +132,8 @@ export default function DashboardBlogsPage() {
         }
         setSaveStatus(`Category "${categoryToDelete}" removed.`);
         setTimeout(() => setSaveStatus(''), 3000);
+      } else {
+        setSaveStatus(`Failed to remove category: ${result.error || 'Unknown error'}`);
       }
     } catch (err) {
       setSaveStatus('Failed to remove category.');

@@ -50,6 +50,14 @@ export async function getCollectionData(collectionName, fallbackValue = []) {
           const { _id, ...cleanItem } = item;
           return cleanItem;
         }
+      } else if (collectionName === 'blogCategories') {
+        const items = await db.collection(collectionName).find({}).toArray();
+        if (items && items.length > 0) {
+          const names = items
+            .map(item => (typeof item === 'object' && item !== null ? (item.name || item.category || '') : item))
+            .filter(Boolean);
+          if (names.length > 0) return names;
+        }
       } else {
         const items = await db.collection(collectionName).find({}).toArray();
         if (items && items.length > 0) {
@@ -85,10 +93,22 @@ export async function saveCollectionData(collectionName, data) {
 
       if (collectionName === 'mainInfo') {
         await db.collection(collectionName).updateOne({}, { $set: data }, { upsert: true });
+      } else if (collectionName === 'blogCategories' && Array.isArray(data)) {
+        await db.collection(collectionName).deleteMany({});
+        if (data.length > 0) {
+          const docs = data
+            .map(item => (typeof item === 'string' ? item.trim() : item?.name ? item.name.trim() : ''))
+            .filter(Boolean)
+            .map(name => ({ name }));
+          if (docs.length > 0) {
+            await db.collection(collectionName).insertMany(docs);
+          }
+        }
       } else if (Array.isArray(data)) {
         await db.collection(collectionName).deleteMany({});
         if (data.length > 0) {
-          await db.collection(collectionName).insertMany(data);
+          const docs = data.map(item => (typeof item === 'object' && item !== null ? item : { value: item }));
+          await db.collection(collectionName).insertMany(docs);
         }
       }
     } catch (e) {
@@ -105,7 +125,9 @@ export async function saveCollectionData(collectionName, data) {
   if (!isProd) {
     saveLocalData((prev) => ({
       ...prev,
-      [collectionName]: data,
+      [collectionName]: Array.isArray(data) && collectionName === 'blogCategories'
+        ? data.map(item => (typeof item === 'string' ? item.trim() : item?.name ? item.name.trim() : '')).filter(Boolean)
+        : data,
     }));
   }
 
