@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Trash2, Plus, Edit2, Save, BookOpen, ExternalLink, Github, CheckCircle2, Tag, Layers, X } from 'lucide-react';
+import { Trash2, Plus, Edit2, Save, BookOpen, ExternalLink, Github, CheckCircle2, Tag, Layers, X, Check } from 'lucide-react';
 
 const DEFAULT_CATEGORIES = [
   'TryHackMe',
@@ -15,6 +15,7 @@ export default function DashboardBlogsPage() {
   const [data, setData] = useState([]);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [newCatInput, setNewCatInput] = useState('');
+  const [editingCategory, setEditingCategory] = useState(null); // { oldName: string, value: string }
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
@@ -137,6 +138,55 @@ export default function DashboardBlogsPage() {
       }
     } catch (err) {
       setSaveStatus('Failed to remove category.');
+    }
+  };
+
+  const handleRenameCategory = async (oldName, newName) => {
+    const trimmed = (newName || '').trim();
+    if (!trimmed) {
+      setSaveStatus('Category name cannot be empty.');
+      return;
+    }
+    if (trimmed.toLowerCase() === oldName.toLowerCase() && trimmed === oldName) {
+      setEditingCategory(null);
+      return;
+    }
+    try {
+      const res = await fetch('/api/blog-categories', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ oldName, newName: trimmed })
+      });
+
+      const result = await res.json().catch(() => ({}));
+      if (res.ok) {
+        if (result.result && Array.isArray(result.result)) {
+          setCategories(result.result);
+        } else {
+          setCategories(prev => prev.map(c => (c.toLowerCase() === oldName.toLowerCase() ? trimmed : c)));
+        }
+        setData(prev => prev.map(b => {
+          let modified = false;
+          let updatedBlog = { ...b };
+          if (b.platform && b.platform.toLowerCase() === oldName.toLowerCase()) {
+            updatedBlog.platform = trimmed;
+            modified = true;
+          }
+          if (b.category && b.category.toLowerCase() === oldName.toLowerCase()) {
+            updatedBlog.category = trimmed;
+            modified = true;
+          }
+          return modified ? updatedBlog : b;
+        }));
+        setEditingCategory(null);
+        setSaveStatus(`Category renamed to "${trimmed}"!`);
+        setTimeout(() => setSaveStatus(''), 3000);
+      } else {
+        setSaveStatus(`Failed to rename category: ${result.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      setSaveStatus('Failed to rename category.');
     }
   };
 
@@ -286,13 +336,61 @@ export default function DashboardBlogsPage() {
         <div className="flex flex-wrap gap-2 pt-1">
           {categories.map((cat) => {
             const count = data.filter(b => (b.category || b.platform || '').toLowerCase().trim() === cat.toLowerCase().trim()).length;
+            const isEditingThis = editingCategory?.oldName === cat;
+
+            if (isEditingThis) {
+              return (
+                <span
+                  key={cat}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-primary/10 border border-primary/50 text-xs font-medium text-foreground"
+                >
+                  <input
+                    type="text"
+                    value={editingCategory.value}
+                    onChange={(e) => setEditingCategory({ ...editingCategory, value: e.target.value })}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleRenameCategory(cat, editingCategory.value);
+                      } else if (e.key === 'Escape') {
+                        setEditingCategory(null);
+                      }
+                    }}
+                    className="bg-background border border-primary/40 rounded px-2 py-0.5 text-xs text-foreground focus:outline-none focus:border-primary w-28 sm:w-36"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRenameCategory(cat, editingCategory.value)}
+                    className="text-emerald-400 hover:text-emerald-300 p-0.5 rounded transition-colors"
+                    title="Save rename"
+                  >
+                    <Check size={12} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingCategory(null)}
+                    className="text-gray-400 hover:text-gray-200 p-0.5 rounded transition-colors"
+                    title="Cancel"
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              );
+            }
 
             return (
               <span
                 key={cat}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-background border border-gray-800 text-xs font-medium text-gray-200"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-background border border-gray-800 text-xs font-medium text-gray-200 group hover:border-gray-700 transition-colors"
               >
-                <span className="font-semibold">{cat}</span>
+                <span
+                  className="font-semibold cursor-pointer hover:text-primary transition-colors"
+                  onClick={() => setEditingCategory({ oldName: cat, value: cat })}
+                  title="Click to rename"
+                >
+                  {cat}
+                </span>
                 {count > 0 && (
                   <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-primary/10 text-primary font-mono">
                     {count}
@@ -300,8 +398,16 @@ export default function DashboardBlogsPage() {
                 )}
                 <button
                   type="button"
+                  onClick={() => setEditingCategory({ oldName: cat, value: cat })}
+                  className="text-gray-500 hover:text-primary p-0.5 ml-0.5 transition-colors"
+                  title={`Rename category "${cat}"`}
+                >
+                  <Edit2 size={11} />
+                </button>
+                <button
+                  type="button"
                   onClick={() => handleDeleteCategory(cat)}
-                  className="text-gray-500 hover:text-rose-400 p-0.5 ml-1 transition-colors"
+                  className="text-gray-500 hover:text-rose-400 p-0.5 transition-colors"
                   title={`Delete category "${cat}"`}
                 >
                   <X size={12} />

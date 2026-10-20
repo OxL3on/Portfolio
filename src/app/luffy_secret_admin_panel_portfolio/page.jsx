@@ -61,6 +61,7 @@ export default function SecretAdminPortal() {
     'Root me'
   ]);
   const [newCatInput, setNewCatInput] = useState('');
+  const [editingCategory, setEditingCategory] = useState(null); // { oldName: string, value: string }
 
   // Sub-forms / Modals
   const [editingItem, setEditingItem] = useState(null);
@@ -1162,41 +1163,184 @@ export default function SecretAdminPortal() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {blogCategories.map(cat => (
-                    <span
-                      key={cat}
-                      className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl bg-card border border-gray-800 text-gray-200 font-medium group"
-                    >
-                      <span>{cat}</span>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!confirm(`Are you sure you want to delete the category "${cat}"? This will remove it from available categories.`)) return;
-                          try {
-                            const res = await authFetch(`/api/blog-categories?category=${encodeURIComponent(cat)}`, {
-                              method: 'DELETE'
-                            });
-                            const data = await res.json().catch(() => ({}));
-                            if (res.ok) {
-                              const updatedList = Array.isArray(data.result)
-                                ? data.result
-                                : blogCategories.filter(c => c.toLowerCase() !== cat.toLowerCase());
-                              setBlogCategories(updatedList);
-                              notifySuccess(`Category "${cat}" removed successfully!`);
-                            } else {
-                              notifyError(data.error || `Failed to remove category "${cat}"`);
-                            }
-                          } catch (err) {
-                            notifyError('Error removing category');
-                          }
-                        }}
-                        className="text-gray-500 hover:text-rose-400 p-0.5 rounded transition-colors ml-0.5"
-                        title={`Delete category "${cat}"`}
+                  {blogCategories.map(cat => {
+                    const isEditingThis = editingCategory?.oldName === cat;
+
+                    if (isEditingThis) {
+                      return (
+                        <span
+                          key={cat}
+                          className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-xl bg-primary/10 border border-primary/50 text-foreground font-medium"
+                        >
+                          <input
+                            type="text"
+                            value={editingCategory.value}
+                            onChange={(e) => setEditingCategory({ ...editingCategory, value: e.target.value })}
+                            onKeyDown={async (e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                const trimmed = (editingCategory.value || '').trim();
+                                if (!trimmed) {
+                                  notifyError('Category name cannot be empty');
+                                  return;
+                                }
+                                if (trimmed.toLowerCase() === cat.toLowerCase() && trimmed === cat) {
+                                  setEditingCategory(null);
+                                  return;
+                                }
+                                try {
+                                  const res = await authFetch('/api/blog-categories', {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ oldName: cat, newName: trimmed })
+                                  });
+                                  const data = await res.json().catch(() => ({}));
+                                  if (res.ok) {
+                                    const updatedList = Array.isArray(data.result)
+                                      ? data.result
+                                      : blogCategories.map(c => (c.toLowerCase() === cat.toLowerCase() ? trimmed : c));
+                                    setBlogCategories(updatedList);
+                                    setBlogs(prev => prev.map(b => {
+                                      let modified = false;
+                                      let updatedBlog = { ...b };
+                                      if (b.platform && b.platform.toLowerCase() === cat.toLowerCase()) {
+                                        updatedBlog.platform = trimmed;
+                                        modified = true;
+                                      }
+                                      if (b.category && b.category.toLowerCase() === cat.toLowerCase()) {
+                                        updatedBlog.category = trimmed;
+                                        modified = true;
+                                      }
+                                      return modified ? updatedBlog : b;
+                                    }));
+                                    setEditingCategory(null);
+                                    notifySuccess(`Category renamed to "${trimmed}"!`);
+                                  } else {
+                                    notifyError(data.error || 'Failed to rename category');
+                                  }
+                                } catch (err) {
+                                  notifyError('Failed to rename category');
+                                }
+                              } else if (e.key === 'Escape') {
+                                setEditingCategory(null);
+                              }
+                            }}
+                            className="bg-background border border-primary/40 rounded px-2 py-0.5 text-xs text-foreground focus:outline-none focus:border-primary w-28 sm:w-36"
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const trimmed = (editingCategory.value || '').trim();
+                              if (!trimmed) {
+                                notifyError('Category name cannot be empty');
+                                return;
+                              }
+                              if (trimmed.toLowerCase() === cat.toLowerCase() && trimmed === cat) {
+                                setEditingCategory(null);
+                                return;
+                              }
+                              try {
+                                const res = await authFetch('/api/blog-categories', {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ oldName: cat, newName: trimmed })
+                                });
+                                const data = await res.json().catch(() => ({}));
+                                if (res.ok) {
+                                  const updatedList = Array.isArray(data.result)
+                                    ? data.result
+                                    : blogCategories.map(c => (c.toLowerCase() === cat.toLowerCase() ? trimmed : c));
+                                  setBlogCategories(updatedList);
+                                  setBlogs(prev => prev.map(b => {
+                                    let modified = false;
+                                    let updatedBlog = { ...b };
+                                    if (b.platform && b.platform.toLowerCase() === cat.toLowerCase()) {
+                                      updatedBlog.platform = trimmed;
+                                      modified = true;
+                                    }
+                                    if (b.category && b.category.toLowerCase() === cat.toLowerCase()) {
+                                      updatedBlog.category = trimmed;
+                                      modified = true;
+                                    }
+                                    return modified ? updatedBlog : b;
+                                  }));
+                                  setEditingCategory(null);
+                                  notifySuccess(`Category renamed to "${trimmed}"!`);
+                                } else {
+                                  notifyError(data.error || 'Failed to rename category');
+                                }
+                              } catch (err) {
+                                notifyError('Failed to rename category');
+                              }
+                            }}
+                            className="text-emerald-400 hover:text-emerald-300 p-0.5 rounded transition-colors"
+                            title="Save rename"
+                          >
+                            <Check size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingCategory(null)}
+                            className="text-gray-400 hover:text-gray-200 p-0.5 rounded transition-colors"
+                            title="Cancel"
+                          >
+                            <X size={13} />
+                          </button>
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <span
+                        key={cat}
+                        className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl bg-card border border-gray-800 text-gray-200 font-medium group hover:border-gray-700 transition-colors"
                       >
-                        <X size={13} />
-                      </button>
-                    </span>
-                  ))}
+                        <span
+                          className="cursor-pointer hover:text-primary transition-colors"
+                          onClick={() => setEditingCategory({ oldName: cat, value: cat })}
+                          title="Click to rename"
+                        >
+                          {cat}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setEditingCategory({ oldName: cat, value: cat })}
+                          className="text-gray-500 hover:text-primary p-0.5 rounded transition-colors ml-0.5"
+                          title={`Rename category "${cat}"`}
+                        >
+                          <Edit2 size={11} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!confirm(`Are you sure you want to delete the category "${cat}"? This will remove it from available categories.`)) return;
+                            try {
+                              const res = await authFetch(`/api/blog-categories?category=${encodeURIComponent(cat)}`, {
+                                method: 'DELETE'
+                              });
+                              const data = await res.json().catch(() => ({}));
+                              if (res.ok) {
+                                const updatedList = Array.isArray(data.result)
+                                  ? data.result
+                                  : blogCategories.filter(c => c.toLowerCase() !== cat.toLowerCase());
+                                setBlogCategories(updatedList);
+                                notifySuccess(`Category "${cat}" removed successfully!`);
+                              } else {
+                                notifyError(data.error || `Failed to remove category "${cat}"`);
+                              }
+                            } catch (err) {
+                              notifyError('Error removing category');
+                            }
+                          }}
+                          className="text-gray-500 hover:text-rose-400 p-0.5 rounded transition-colors ml-0.5"
+                          title={`Delete category "${cat}"`}
+                        >
+                          <X size={13} />
+                        </button>
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
 
